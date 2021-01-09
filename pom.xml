@@ -56,19 +56,19 @@
   </distributionManagement>
 
   <properties>
-    <java.version>1.8</java.version>
+    <java.version>11</java.version>
     <scala.main>2.12</scala.main>
-    <spark.version>3.0.1</spark.version>
+    <spark.version>3.1.0</spark.version>
     <spark.core.artifactid>spark-core_${scala.main}</spark.core.artifactid>
     <spark.sql.artifactid>spark-sql_${scala.main}</spark.sql.artifactid>
     <spark.exclude.packages>org.genomicsdb.spark.v2</spark.exclude.packages>
     <spark.exclude.files>**/org/genomicsdb/spark/v2/**.java</spark.exclude.files>
-    <htsjdk.version>2.10.0</htsjdk.version>
+    <htsjdk.version>2.23.0</htsjdk.version>
     <json.simple.version>[1.1.1,)</json.simple.version>
     <log4j.version>[2.13.0,)</log4j.version>
     <protobuf.version>3.0.2</protobuf.version>
     <protobuf_shade_version>com.google.protobufv3_0_2</protobuf_shade_version>
-    <testng.version>6.10</testng.version>
+    <testng.version>7.3.0</testng.version>
     <gnu.getopt.version>1.0.13</gnu.getopt.version>
     <surefire.plugin.version>2.20</surefire.plugin.version>
     <genomicsdb_source_directory>.</genomicsdb_source_directory>
@@ -79,7 +79,7 @@
     <test_source_directory>${genomicsdb_source_directory}/src/test/java</test_source_directory>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <surefireArgLine>-Djava.library.path=${project.basedir}/bin:${java.library.path}</surefireArgLine>
+    <surefireArgLine>--illegal-access=permit -Djava.library.path=${project.basedir}/bin:${java.library.path}</surefireArgLine>
   </properties>
 
   <dependencies>
@@ -169,6 +169,14 @@
     </pluginManagement>
     
     <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>versions-maven-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <generateBackupPoms>false</generateBackupPoms>
+        </configuration>
+      </plugin>
       <plugin>
         <inherited>true</inherited>
         <groupId>org.apache.maven.plugins</groupId>
