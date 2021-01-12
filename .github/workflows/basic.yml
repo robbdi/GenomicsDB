@@ -20,13 +20,16 @@ jobs:
       matrix:
         os: [ubuntu-18.04,macos-10.15]
         type: [basic]
-        java: [11.0.x]
+        java: [8, 11.0.x]
         exclude: 
           - os: macos-10.15
             java: 11.0.x
         include:
           - os: ubuntu-18.04
             type: hdfs
+            java: 8 
+          - os: ubuntu-18.04
+            java: 11.0.x
 
     runs-on: ${{matrix.os}}
 
