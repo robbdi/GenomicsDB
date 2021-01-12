@@ -20,7 +20,7 @@ jobs:
       matrix:
         os: [ubuntu-18.04,macos-10.15]
         type: [basic]
-        java: [8, 11.0.x]
+        java: 11.0.x
         exclude: 
           - os: macos-10.15
             java: 11.0.x
