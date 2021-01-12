@@ -56,7 +56,7 @@
   </distributionManagement>
 
   <properties>
-    <java.version>11</java.version>
+    <java.version>1.8</java.version>
     <scala.main>2.12</scala.main>
     <spark.version>3.1.0</spark.version>
     <spark.core.artifactid>spark-core_${scala.main}</spark.core.artifactid>
@@ -471,6 +471,12 @@
     </plugins>
   </build>
   <profiles>
+    <profile>
+      <id>java11</id>
+      <properties>
+        <java.version>11</java.version>
+      </properties>
+    </profile>
     <profile>
       <id>spark2</id>
       <properties>
