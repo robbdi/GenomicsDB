@@ -114,7 +114,7 @@ jobs:
 
     - name: Configure CMake Build ubuntu with Java 8 
       shell: bash
-      if: startsWith(matrix.os, 'ubuntu') && contains(matrix.os, '8.0.x')
+      if: startsWith(matrix.os, 'ubuntu') && !contains(matrix.os, '8.0.x')
       working-directory: ${{env.GENOMICSDB_BUILD_DIR}}
       run: |
         source $PREREQS_ENV
@@ -127,14 +127,6 @@ jobs:
       run: |
         source $PREREQS_ENV
         cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Coverage -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DCMAKE_PREFIX_PATH=$PREREQS_INSTALL_DIR -DGENOMICSDB_RELEASE_VERSION=$GENOMICSDB_RELEASE_VERSION -DBUILD_JAVA=1 -DGENOMICSDB_SPARK_PROFILE=java11
-
-    - name: Configure CMake Build ubuntu
-      shell: bash
-      if: startsWith(matrix.os, 'ubuntu') 
-      working-directory: ${{env.GENOMICSDB_BUILD_DIR}}
-      run: |
-        source $PREREQS_ENV
-        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Coverage -DCMAKE_INSTALL_PREFIX=$CMAKE_INSTALL_PREFIX -DCMAKE_PREFIX_PATH=$PREREQS_INSTALL_DIR -DGENOMICSDB_RELEASE_VERSION=$GENOMICSDB_RELEASE_VERSION -DBUILD_JAVA=1
 
     - name: Configure CMake Build macos
       shell: bash
