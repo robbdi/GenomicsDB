@@ -501,7 +501,11 @@ if(BUILD_JAVA)
         -Dprotobuf.version=${GENOMICSDB_PROTOBUF_VERSION}
         ${MAVEN_PROTOBUF_REGENERATE_ARGS})
 
+<<<<<<< HEAD
       if(GENOMICSDB_SPARK_PROFILE)
+=======
+      if(GENOMICSDB_SPARK_PROFILE STREQUAL "spark2")
+>>>>>>> develop
         message(STATUS "Setting maven profile to ${GENOMICSDB_SPARK_PROFILE}" )
         set(MAVEN_PROFILE 
           -P${GENOMICSDB_SPARK_PROFILE})
