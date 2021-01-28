@@ -58,20 +58,12 @@
   <properties>
     <java.version>1.8</java.version>
     <scala.main>2.12</scala.main>
-<<<<<<< HEAD
-    <spark.version>3.1.0</spark.version>
-=======
     <spark.version>3.0.1</spark.version>
->>>>>>> develop
     <spark.core.artifactid>spark-core_${scala.main}</spark.core.artifactid>
     <spark.sql.artifactid>spark-sql_${scala.main}</spark.sql.artifactid>
     <spark.exclude.packages>org.genomicsdb.spark.v2</spark.exclude.packages>
     <spark.exclude.files>**/org/genomicsdb/spark/v2/**.java</spark.exclude.files>
-<<<<<<< HEAD
     <htsjdk.version>2.23.0</htsjdk.version>
-=======
-    <htsjdk.version>2.10.0</htsjdk.version>
->>>>>>> develop
     <json.simple.version>[1.1.1,)</json.simple.version>
     <log4j.version>[2.13.0,)</log4j.version>
     <protobuf.version>3.0.2</protobuf.version>
@@ -480,15 +472,13 @@
   </build>
   <profiles>
     <profile>
-<<<<<<< HEAD
       <id>java11</id>
       <properties>
         <java.version>11</java.version>
+        <surefireArgLine>--illegal-access=permit -Djava.library.path=${project.basedir}/bin:${java.library.path}</surefireArgLine>
       </properties>
-    </profile>
+      </profile>  
     <profile>
-=======
->>>>>>> develop
       <id>spark2</id>
       <properties>
         <scala.main>2.11</scala.main>

@@ -82,8 +82,8 @@ public class GenomicsDBSchemaFactory {
 
   // this will contain the minimum viable set of fields 
   // required to create a glow internal field
-  public static List<StructFields> glowCompatFields(){
-    List<StructFields> fields = new ArrayList<>();
+  public static List<StructField> glowCompatFields(){
+    List<StructField> fields = new ArrayList<>();
     // glow uses default values for nullable, which is always true so we will follow suite
     fields.add(DataTypes.createStructField("contigName", DataTypes.StringType, true));
     fields.add(DataTypes.createStructField("start", DataTypes.LongType, true));
@@ -101,12 +101,12 @@ public class GenomicsDBSchemaFactory {
 
   }
  
-  public static StructType defaultSchema(Boolean glowCompat = false){
-    if (glowCompat){
-      return DataTypes.createStructType(glowCompatFields());
-    }else{
-      return DataTypes.createStructType(defaultFields());
-    }
+  public static StructType defaultSchema(){
+    return DataTypes.createStructType(defaultFields());
+  }
+
+  public static StructType glowCompatSchema(){
+    return DataTypes.createStructType(glowCompatFields());
   }
 
   public static List<StructField> extendSchema(StructField[] addFields){
