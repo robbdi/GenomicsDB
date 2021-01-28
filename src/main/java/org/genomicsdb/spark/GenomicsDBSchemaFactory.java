@@ -79,9 +79,34 @@ public class GenomicsDBSchemaFactory {
           DataTypes.createArrayType(DataTypes.StringType, true), true));
     return fields;
   }
+
+  // this will contain the minimum viable set of fields 
+  // required to create a glow internal field
+  public static List<StructFields> glowCompatFields(){
+    List<StructFields> fields = new ArrayList<>();
+    // glow uses default values for nullable, which is always true so we will follow suite
+    fields.add(DataTypes.createStructField("contigName", DataTypes.StringType, true));
+    fields.add(DataTypes.createStructField("start", DataTypes.LongType, true));
+    fields.add(DataTypes.createStructField("end", DataTypes.LongType, true));
+    fields.add(DataTypes.createStructField("referenceAllele", DataTypes.StringType, true));
+    fields.add(DataTypes.createStructField("alternateAlleles", 
+          DataTypes.createArrayType(DataTypes.StringType, true), true));
+    fields.add(DataTypes.createStructField("names", 
+          DataTypes.createArrayType(DataTypes.StringType, true), true));
+    // there are several possibilities for genotype representation, but 
+    // we will focus on calls first
+    fields.add(DataTypes.createStructField("calls", 
+          DataTypes.createArrayType(DataTypes.StringType, true), true));
+    return fields;
+
+  }
  
-  public static StructType defaultSchema(){
-    return DataTypes.createStructType(defaultFields());
+  public static StructType defaultSchema(Boolean glowCompat = false){
+    if (glowCompat){
+      return DataTypes.createStructType(glowCompatFields());
+    }else{
+      return DataTypes.createStructType(defaultFields());
+    }
   }
 
   public static List<StructField> extendSchema(StructField[] addFields){

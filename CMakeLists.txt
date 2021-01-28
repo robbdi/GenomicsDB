@@ -510,11 +510,7 @@ if(BUILD_JAVA)
 
       endif()
 
-<<<<<<< HEAD
       if(GENOMICSDB_SPARK_PROFILE)
-=======
-      if(GENOMICSDB_SPARK_PROFILE STREQUAL "spark2")
->>>>>>> develop
         message(STATUS "Setting maven profile to ${GENOMICSDB_SPARK_PROFILE}" )
         set(MAVEN_PROFILE 
           -P${GENOMICSDB_SPARK_PROFILE})
