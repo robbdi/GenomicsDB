@@ -57,6 +57,7 @@ public class GenomicsDBConfiguration extends Configuration implements Serializab
   public static final String LOADERPB = "genomicsdb.input.loaderprotobuf";
   public static final String QUERYPB = "genomicsdb.input.queryprotobuf";
   public static final String READER_TYPE = "genomicsdb.reader.type";
+  public static final String DEFAULT_READER = "VariantContext";
 
   private Boolean produceCombinedVCF = false;
   private Boolean produceTileDBArray = false;
@@ -122,6 +123,8 @@ public class GenomicsDBConfiguration extends Configuration implements Serializab
     
     if (options.containsKey(READER_TYPE)){
       this.setReaderType(options.get(READER_TYPE));
+    }else{
+      this.setReaderType(DEFAULT_READER);
     }
   }
 
@@ -178,11 +181,11 @@ public class GenomicsDBConfiguration extends Configuration implements Serializab
   }
 
   public String getReaderType(){
-    return this.get(READER_TYPE);
+    return get(READER_TYPE);
   }
 
   public Boolean readVariantContext(){
-    return this.get(READER_TYPE) == null;
+    return this.getReaderType() == DEFAULT_READER;
   }
 
   /**
