@@ -259,7 +259,7 @@ public class GenomicsDBQueryTest {
     columnRanges.add(new Pair(50000L, 1000000000L));
     List<Pair>rowRanges = new ArrayList<>();
     rowRanges.add(new Pair(0L, 3L));
-    
+        
     query.disconnect(genomicsDBHandle);
   }
 

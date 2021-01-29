@@ -32,6 +32,7 @@ import org.apache.spark.sql.util.CaseInsensitiveStringMap;
 import org.genomicsdb.spark.GenomicsDBSchemaFactory;
 
 import java.util.Map;
+import org.apache.log4j.Logger;
 
 /** 
  * The base interface for all custom datasources in Spark3. 
@@ -44,7 +45,8 @@ import java.util.Map;
 public class GenomicsDBSource implements TableProvider {
 
   public GenomicsDBSource(){}
-
+  //transient Logger log = Logger.getLogger(GenomicsDBSource.class); 
+  
   /** 
    * This sets the default schema, which will contain all 
    * the default fields coming 

@@ -445,6 +445,7 @@ if(BUILD_JAVA)
         ./src/main/scala/org/genomicsdb/GenomicsDBScalaSparkFactory.scala
         ./src/test/java/org/genomicsdb/importer/GenomicsDBImporterSpec.java
         ./src/test/java/org/genomicsdb/reader/ChrArrayFolderComparatorSpec.java
+        ./src/test/java/org/genomicsdb/reader/GenomicsDBQueryTest.java
         ./src/test/java/org/genomicsdb/spark/GenomicsDBInputFormatTest.java
         ./src/test/java/org/genomicsdb/model/CommandLineImportConfigSpec.java
         ./src/test/java/org/genomicsdb/model/GenomicsDBCallsetsMapProtoSpec.java
@@ -453,6 +454,7 @@ if(BUILD_JAVA)
         ./src/test/java/org/genomicsdb/model/GenomicsDBVidMappingProtoSpec.java
         ./src/test/java/org/genomicsdb/model/ImportConfigSpec.java
         ./src/test/java/org/genomicsdb/GenomicsDBTestUtils.java
+        
         )
     
       if(GENOMICSDB_MAVEN_PROFILE STREQUAL "spark2")

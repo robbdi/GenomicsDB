@@ -218,7 +218,8 @@ public final class TestGenomicsDBSource {
     DataFrameReader reader = spark.read()
             .format(gdbDataSource)
             .schema(schema)
-            .option("genomicsdb.input.loaderjsonfile", lDstFile.getName());
+            .option("genomicsdb.input.loaderjsonfile", lDstFile.getName()) 
+            .option("genomicsdb.reader.type", "GenomicsDBQuery");
     if (!hostfile.isEmpty()) {
       reader = reader.option("genomicsdb.input.mpi.hostfile", hostfile);
     }

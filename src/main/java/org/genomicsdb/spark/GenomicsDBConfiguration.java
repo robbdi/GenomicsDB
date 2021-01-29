@@ -56,6 +56,7 @@ public class GenomicsDBConfiguration extends Configuration implements Serializab
   public static final String PARTITION_STRATEGY = "genomicsdb.partition.strategy";
   public static final String LOADERPB = "genomicsdb.input.loaderprotobuf";
   public static final String QUERYPB = "genomicsdb.input.queryprotobuf";
+  public static final String READER_TYPE = "genomicsdb.reader.type";
 
   private Boolean produceCombinedVCF = false;
   private Boolean produceTileDBArray = false;
@@ -118,6 +119,10 @@ public class GenomicsDBConfiguration extends Configuration implements Serializab
         e.printStackTrace();
       }
     }
+    
+    if (options.containsKey(READER_TYPE)){
+      this.setReaderType(options.get(READER_TYPE));
+    }
   }
 
   // <String> left for backward compatibility to Java 7
@@ -165,6 +170,19 @@ public class GenomicsDBConfiguration extends Configuration implements Serializab
 
   public Boolean hasProtoQuery(){
     return this.get(QUERYPB) != null;
+  }
+
+  public GenomicsDBConfiguration setReaderType(String rtype){
+    set(READER_TYPE, rtype);
+    return this; 
+  }
+
+  public String getReaderType(){
+    return this.get(READER_TYPE);
+  }
+
+  public Boolean readVariantContext(){
+    return this.get(READER_TYPE) == null;
   }
 
   /**
