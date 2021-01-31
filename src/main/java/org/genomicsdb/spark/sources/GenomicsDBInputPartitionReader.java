@@ -42,6 +42,7 @@ import org.apache.spark.sql.types.StructType;
 import org.genomicsdb.spark.GenomicsDBInput;
 import org.genomicsdb.spark.GenomicsDBVidSchema;
 import org.genomicsdb.spark.Converter; 
+import org.genomicsdb.spark.GenomicsDBConfiguration;
 import java.util.Iterator;
 
 
@@ -64,9 +65,15 @@ public class GenomicsDBInputPartitionReader implements PartitionReader<InternalR
   private Iterator<InternalRow> iterator;
   private String readerType;
 
-  public GenomicsDBInputPartitionReader(GenomicsDBInputPartition inputPartition) {
+  public GenomicsDBInputPartitionReader(GenomicsDBInputPartition inputPartition) throws RuntimeException {
     readerType = inputPartition.getReaderType();
-    converter = new VariantContextToInternalRow(inputPartition);
+    if (readerType == GenomicsDBConfiguration.DEFAULT_READER){  
+      converter = new VariantContextToInternalRow(inputPartition);
+    }else if (readerType == GenomicsDBConfiguration.GDBQUERY_READER){
+      converter = new GenomicsDBQueryToInternalRow(inputPartition);
+    }else{
+      throw new RuntimeException("Unsupported reader type "+readerType);
+    }
     iterator = converter.getIterator();
   }
 

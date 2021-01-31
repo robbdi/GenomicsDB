@@ -56,8 +56,10 @@ public class GenomicsDBConfiguration extends Configuration implements Serializab
   public static final String PARTITION_STRATEGY = "genomicsdb.partition.strategy";
   public static final String LOADERPB = "genomicsdb.input.loaderprotobuf";
   public static final String QUERYPB = "genomicsdb.input.queryprotobuf";
+  // reader specific
   public static final String READER_TYPE = "genomicsdb.reader.type";
   public static final String DEFAULT_READER = "VariantContext";
+  public static final String GDBQUERY_READER = "GenomicsDBQuery";
 
   private Boolean produceCombinedVCF = false;
   private Boolean produceTileDBArray = false;
