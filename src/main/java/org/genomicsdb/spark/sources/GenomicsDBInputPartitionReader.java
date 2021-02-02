@@ -65,15 +65,17 @@ public class GenomicsDBInputPartitionReader implements PartitionReader<InternalR
   private Iterator<InternalRow> iterator;
   private String readerType;
 
-  public GenomicsDBInputPartitionReader(GenomicsDBInputPartition inputPartition) throws RuntimeException {
+  public GenomicsDBInputPartitionReader(GenomicsDBInputPartition inputPartition) { //throws RuntimeException {
     readerType = inputPartition.getReaderType();
+    System.out.println("readerType "+readerType);
     if (readerType == GenomicsDBConfiguration.DEFAULT_READER){  
       converter = new VariantContextToInternalRow(inputPartition);
-    }else if (readerType == GenomicsDBConfiguration.GDBQUERY_READER){
+    }else{// if (readerType == GenomicsDBConfiguration.GDBQUERY_READER){
       converter = new GenomicsDBQueryToInternalRow(inputPartition);
-    }else{
-      throw new RuntimeException("Unsupported reader type "+readerType);
     }
+    //else{
+    //  throw new RuntimeException("Unsupported reader type "+readerType);
+    //}
     iterator = converter.getIterator();
   }
 

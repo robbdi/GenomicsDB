@@ -45,7 +45,7 @@ public class GenomicsDBInputPartition implements InputPartition, GenomicsDBInput
   private String[] hosts;
   private StructType schema;
   private Map<String, GenomicsDBVidSchema> vMap;
-  private String readerType; 
+  private String readerType = GenomicsDBConfiguration.DEFAULT_READER; 
 
   public GenomicsDBInputPartition(){}
 

@@ -22,20 +22,36 @@
 
 package org.genomicsdb.spark.sources;
 
+import org.genomicsdb.spark.GenomicsDBInput;
 import org.genomicsdb.model.GenomicsDBExportConfiguration;
 import org.genomicsdb.spark.Converter;
 import org.genomicsdb.reader.GenomicsDBQuery; 
+import org.genomicsdb.reader.GenomicsDBQuery.Interval;
+import org.genomicsdb.reader.GenomicsDBQuery.Pair;
+import org.genomicsdb.reader.GenomicsDBQuery.VariantCall;
+import org.genomicsdb.model.Coordinates;
+
+import org.apache.spark.unsafe.types.UTF8String;
+import org.apache.spark.sql.catalyst.util.ArrayData;
+import org.apache.spark.sql.catalyst.util.GenericArrayData;
 
 import org.apache.spark.sql.catalyst.InternalRow;
 import java.util.Iterator;
+import java.util.List;
+import java.util.ArrayList;
 import scala.collection.JavaConverters;
 import org.json.simple.parser.ParseException;
-
+import java.io.IOException;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 
 public class GenomicsDBQueryToInternalRow extends Converter {
 
-  private Iterator<InternalRow> iterator;
+  private Iterator<Interval> iterator;
   private GenomicsDBInputPartition inputPartition;
+  private GenomicsDBExportConfiguration.ExportConfiguration exportConfiguration;
   private GenomicsDBQuery query;
   private long queryHandle;
 
@@ -47,9 +63,9 @@ public class GenomicsDBQueryToInternalRow extends Converter {
   private List<String> attributesList;
 
 
-  public GenomicsDBQueryToInternalRow(GenomicsDBInputPartition iPartition){
+  public GenomicsDBQueryToInternalRow(GenomicsDBInputPartition iPartition) {
     inputPartition = iPartition;
-    GenomicsDBExportConfiguration.ExportConfiguration exportConfiguration;
+    String loader = iPartition.getLoader();
     try {
       exportConfiguration =
         GenomicsDBInput.createTargetExportConfigurationPB(
@@ -63,11 +79,7 @@ public class GenomicsDBQueryToInternalRow extends Converter {
     this.query = new GenomicsDBQuery();
 
     // connect parameters
-    this.workspace = exportConfiguration.getWorkspace();
-    this.vidMapping = exportConfiguration.getVidMappingFile();
-    this.callsetMapping = exportConfiguration.getCallsetMappingFile();
-    this.referenceGenome = exportConfiguration.getReferenceGenome();
-    this.segmentSize = exportConfiguration.getSegmentSize().longValue();
+    setAttributes(loader);
     this.attributesList = exportConfiguration.getAttributesList();
     
     List<Interval> intervals;
@@ -76,9 +88,9 @@ public class GenomicsDBQueryToInternalRow extends Converter {
 
       // connection
       if (this.segmentSize > 0) {
-        this.queryHandle = query.connect(workspace, vidMappingFile, callsetMappingFile, referenceGenome, attributesList, segmentSize.longValue());
+        this.queryHandle = query.connect(workspace, vidMapping, callsetMapping, referenceGenome, attributesList, segmentSize);
       } else {
-        this.queryHandle = query.connect(workspace, vidMappingFile, callsetMappingFile, referenceGenome, attributesList);
+        this.queryHandle = query.connect(workspace, vidMapping, callsetMapping, referenceGenome, attributesList);
       }
 
       // query
@@ -93,6 +105,43 @@ public class GenomicsDBQueryToInternalRow extends Converter {
     }
     query.disconnect(queryHandle);
     this.iterator = intervals.iterator();
+  }
+
+
+  private boolean check_configuration(String key, String value) {
+    if (value == null || value.isEmpty()) {
+      System.err.println("GenomicsDB Configuration does not contain value for key=" + key);
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  private void setAttributes(String loader) throws RuntimeException {
+    JSONObject jsonObject = null;
+    try {
+      JSONParser parser = new JSONParser();
+      jsonObject = (JSONObject)parser.parse(new FileReader(loader));
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    } catch (IOException e) {
+      e.printStackTrace();
+    } catch (ParseException e) {
+      e.printStackTrace();
+    }
+    if (jsonObject != null) {
+      this.workspace = (this.exportConfiguration.hasWorkspace())?this.exportConfiguration.getWorkspace():(String)jsonObject.get("workspace");
+      this.vidMapping = (this.exportConfiguration.hasVidMappingFile())?this.exportConfiguration.getVidMappingFile():(String)jsonObject.get("vid_mapping_file");
+      this.callsetMapping = (this.exportConfiguration.hasCallsetMappingFile())?this.exportConfiguration.getCallsetMappingFile():(String)jsonObject.get("callset_mapping_file");
+      this.referenceGenome = (this.exportConfiguration.hasReferenceGenome())?this.exportConfiguration.getReferenceGenome():(String)jsonObject.get("reference_genome");
+      this.segmentSize = (this.exportConfiguration.hasSegmentSize())?this.exportConfiguration.getSegmentSize():(Long)jsonObject.get("segment_size");
+      if (!check_configuration("workspace", this.workspace) ||
+          !check_configuration("vid_mapping_file", this.vidMapping) ||
+          !check_configuration("callset_mapping_file", this.callsetMapping) ||
+          !check_configuration("reference_genome", this.referenceGenome)) {
+          throw new RuntimeException("GenomicsDBConfiguration is incomplete. Add required configuration values and restart the operation");
+      }
+    }
   }
 
   // this is dupliated functionality from the api class, should consider moving to a util class 
@@ -132,9 +181,31 @@ public class GenomicsDBQueryToInternalRow extends Converter {
     List<VariantCall> vcs = interval.getCalls();
     // the schema is actually different here, at first attempt just make sure 
     // this is passed through with the GenomicsDBSchemaFactory
-    ArrayList<Object> rowObjets = new ArrayList<>(inputPartition.getSchema().size());
-    //rowObjects.add(UTF8String.fromString(    
-    return InteralRow.fromSeq(JavaConverters.asScalaIteratorConverter(Iterator())()
+    ArrayList<Object> rowObjects = new ArrayList<>(inputPartition.getSchema().size());
+    Object[] callObjects = new Object[vcs.size()];
+    rowObjects.add(interval.getInterval().getStart());
+    rowObjects.add(interval.getInterval().getEnd());
+
+    int i = 0;
+    for (VariantCall c: vcs){
+      ArrayList<Object> callObject = new ArrayList<>(6);
+      callObject.add(c.getRowIndex());
+      callObject.add(c.getColIndex());
+      callObject.add(UTF8String.fromString(c.getSampleName()));
+      callObject.add(UTF8String.fromString(c.getSampleName()));
+      callObject.add(c.getGenomic_interval().getStart());
+      callObject.add(c.getGenomic_interval().getEnd());
+      callObjects[i++] = InternalRow.fromSeq(
+        JavaConverters.asScalaIteratorConverter(callObject.iterator()).asScala().toSeq());
+    }
+    rowObjects.add(ArrayData.toArrayData(callObjects));
+        //InternalRow.fromSeq(
+        //JavaConverters.asScalaIteratorConverter(callObjects.iterator()).asScala().toSeq()));
+    
+    InternalRow iRow =
+      InternalRow.fromSeq(
+        JavaConverters.asScalaIteratorConverter(rowObjects.iterator()).asScala().toSeq());
+    return iRow;
   }
 
   public void close(){}

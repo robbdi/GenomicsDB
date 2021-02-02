@@ -45,7 +45,6 @@ import org.apache.log4j.Logger;
 public class GenomicsDBSource implements TableProvider {
 
   public GenomicsDBSource(){}
-  //transient Logger log = Logger.getLogger(GenomicsDBSource.class); 
   
   /** 
    * This sets the default schema, which will contain all 

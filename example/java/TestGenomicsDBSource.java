@@ -205,11 +205,11 @@ public final class TestGenomicsDBSource {
     try {
       GenomicsDBSchemaFactory schemaBuilder = new GenomicsDBSchemaFactory(loaderFile);
       StructType querySchema = getSchemaFromQuery(new File(queryFile), vidMapping);
-      schema = schemaBuilder.buildSchemaWithVid(querySchema.fields());
-      
+      //schema = schemaBuilder.buildSchemaWithVid(querySchema.fields());
+      schema = schemaBuilder.intervalSchema();
       // test building schema without vid
       StructType schemaTest = GenomicsDBSchemaFactory.buildSchema(querySchema.fields());
-
+      
     } catch (ParseException e) {
       e.printStackTrace();
     }
@@ -236,6 +236,8 @@ public final class TestGenomicsDBSource {
       reader = reader.option("genomicsdb.input.queryjsonfile", qDstFile.getName());
     }
     variants = reader.load();
+    variants.show();
+    
     String tempDir = "./" + UUID.randomUUID().toString();
     
     // change number format for our floats so they're easier to read/compare

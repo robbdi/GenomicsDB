@@ -80,6 +80,26 @@ public class GenomicsDBSchemaFactory {
     return fields;
   }
 
+  public static List<StructField> intervalFields(){
+    List<StructField> fields = new ArrayList<>(); 
+    List<StructField> calls = new ArrayList<>();
+    fields.add(DataTypes.createStructField("intervalStart", DataTypes.LongType, false));
+    fields.add(DataTypes.createStructField("intervalEnd", DataTypes.LongType, false));
+
+    calls.add(DataTypes.createStructField("rowIndex", DataTypes.LongType, true));
+    calls.add(DataTypes.createStructField("colIndex", DataTypes.LongType, true));
+    calls.add(DataTypes.createStructField("sampleName", DataTypes.StringType, true));
+    calls.add(DataTypes.createStructField("contigName", DataTypes.StringType, true));
+    calls.add(DataTypes.createStructField("start", DataTypes.LongType, true));
+    calls.add(DataTypes.createStructField("end", DataTypes.LongType, true));
+    //omit for now
+    //calls.add(DataTypes.createStructField("genomicFields", DataTypes.StringType, true));
+    fields.add(DataTypes.createStructField("calls", 
+          DataTypes.createArrayType(DataTypes.createStructType(calls), true), true));
+    return fields;
+
+  }
+
   // this will contain the minimum viable set of fields 
   // required to create a glow internal field
   public static List<StructField> glowCompatFields(){
@@ -103,6 +123,10 @@ public class GenomicsDBSchemaFactory {
  
   public static StructType defaultSchema(){
     return DataTypes.createStructType(defaultFields());
+  }
+
+  public static StructType intervalSchema(){
+    return DataTypes.createStructType(intervalFields());
   }
 
   public static StructType glowCompatSchema(){
