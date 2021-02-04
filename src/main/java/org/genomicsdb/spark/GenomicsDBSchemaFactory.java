@@ -81,21 +81,15 @@ public class GenomicsDBSchemaFactory {
   }
 
   public static List<StructField> intervalFields(){
-    List<StructField> fields = new ArrayList<>(); 
-    List<StructField> calls = new ArrayList<>();
-    fields.add(DataTypes.createStructField("intervalStart", DataTypes.LongType, false));
-    fields.add(DataTypes.createStructField("intervalEnd", DataTypes.LongType, false));
-
-    calls.add(DataTypes.createStructField("rowIndex", DataTypes.LongType, true));
-    calls.add(DataTypes.createStructField("colIndex", DataTypes.LongType, true));
-    calls.add(DataTypes.createStructField("sampleName", DataTypes.StringType, true));
-    calls.add(DataTypes.createStructField("contigName", DataTypes.StringType, true));
-    calls.add(DataTypes.createStructField("start", DataTypes.LongType, true));
-    calls.add(DataTypes.createStructField("end", DataTypes.LongType, true));
+    List<StructField> fields = new ArrayList<>();
+    fields.add(DataTypes.createStructField("rowIndex", DataTypes.LongType, true));
+    fields.add(DataTypes.createStructField("colIndex", DataTypes.LongType, true));
+    fields.add(DataTypes.createStructField("sampleName", DataTypes.StringType, true));
+    fields.add(DataTypes.createStructField("contigName", DataTypes.StringType, true));
+    fields.add(DataTypes.createStructField("start", DataTypes.LongType, true));
+    fields.add(DataTypes.createStructField("end", DataTypes.LongType, true));
     //omit for now
     //calls.add(DataTypes.createStructField("genomicFields", DataTypes.StringType, true));
-    fields.add(DataTypes.createStructField("calls", 
-          DataTypes.createArrayType(DataTypes.createStructType(calls), true), true));
     return fields;
 
   }

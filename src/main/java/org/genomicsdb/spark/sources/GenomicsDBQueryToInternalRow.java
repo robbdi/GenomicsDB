@@ -46,10 +46,11 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.util.stream.Stream;
 
 public class GenomicsDBQueryToInternalRow extends Converter {
 
-  private Iterator<Interval> iterator;
+  private Iterator<VariantCall> iterator;
   private GenomicsDBInputPartition inputPartition;
   private GenomicsDBExportConfiguration.ExportConfiguration exportConfiguration;
   private GenomicsDBQuery query;
@@ -104,7 +105,7 @@ public class GenomicsDBQueryToInternalRow extends Converter {
     
     }
     query.disconnect(queryHandle);
-    this.iterator = intervals.iterator();
+    this.iterator = intervals.stream().flatMap(i -> i.getCalls().stream()).iterator();
   }
 
 
@@ -174,37 +175,21 @@ public class GenomicsDBQueryToInternalRow extends Converter {
     return this.iterator;
   }
   
-  // this will be intervals at top level
-  // and calls in a nested structure
   public InternalRow get(){
-    Interval interval = this.iterator.next();
-    List<VariantCall> vcs = interval.getCalls();
+    VariantCall vc = this.iterator.next();
     // the schema is actually different here, at first attempt just make sure 
     // this is passed through with the GenomicsDBSchemaFactory
-    ArrayList<Object> rowObjects = new ArrayList<>(inputPartition.getSchema().size());
-    Object[] callObjects = new Object[vcs.size()];
-    rowObjects.add(interval.getInterval().getStart());
-    rowObjects.add(interval.getInterval().getEnd());
-
-    int i = 0;
-    for (VariantCall c: vcs){
-      ArrayList<Object> callObject = new ArrayList<>(6);
-      callObject.add(c.getRowIndex());
-      callObject.add(c.getColIndex());
-      callObject.add(UTF8String.fromString(c.getSampleName()));
-      callObject.add(UTF8String.fromString(c.getSampleName()));
-      callObject.add(c.getGenomic_interval().getStart());
-      callObject.add(c.getGenomic_interval().getEnd());
-      callObjects[i++] = InternalRow.fromSeq(
-        JavaConverters.asScalaIteratorConverter(callObject.iterator()).asScala().toSeq());
-    }
-    rowObjects.add(ArrayData.toArrayData(callObjects));
-        //InternalRow.fromSeq(
-        //JavaConverters.asScalaIteratorConverter(callObjects.iterator()).asScala().toSeq()));
+    ArrayList<Object> callObjects = new ArrayList<>(inputPartition.getSchema().size());
+    callObjects.add(vc.getRowIndex());
+    callObjects.add(vc.getColIndex());
+    callObjects.add(UTF8String.fromString(vc.getSampleName()));
+    callObjects.add(UTF8String.fromString(vc.getSampleName()));
+    callObjects.add(vc.getGenomic_interval().getStart());
+    callObjects.add(vc.getGenomic_interval().getEnd());
     
     InternalRow iRow =
       InternalRow.fromSeq(
-        JavaConverters.asScalaIteratorConverter(rowObjects.iterator()).asScala().toSeq());
+        JavaConverters.asScalaIteratorConverter(callObjects.iterator()).asScala().toSeq());
     return iRow;
   }
 
