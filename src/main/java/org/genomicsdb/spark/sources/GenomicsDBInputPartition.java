@@ -56,7 +56,6 @@ public class GenomicsDBInputPartition implements InputPartition, GenomicsDBInput
     partition = null;
     queryRangeList = null;
     this.schema = schema;
-    this.readerType = gConf.getReaderType();
   }
 
   public GenomicsDBInputPartition(GenomicsDBPartitionInfo partition,
@@ -68,7 +67,6 @@ public class GenomicsDBInputPartition implements InputPartition, GenomicsDBInput
     this.partition = new GenomicsDBPartitionInfo(partition);
     this.queryRangeList = new ArrayList<GenomicsDBQueryInfo>(queryList);
     this.schema = schema;
-    this.readerType = gConf.getReaderType();
   }
 
 
@@ -137,6 +135,7 @@ public class GenomicsDBInputPartition implements InputPartition, GenomicsDBInput
   }
 
   private void setLoaderAndQuery(GenomicsDBConfiguration g) {
+    
     if (g.getLoaderPB() != null) {
       loader = g.getLoaderPB();
       loaderIsPB = true;
@@ -145,6 +144,7 @@ public class GenomicsDBInputPartition implements InputPartition, GenomicsDBInput
       loader = g.getLoaderJsonFile(); 
       loaderIsPB = false;
     }
+    
     if (g.getQueryPB() != null) {
       query = g.getQueryPB();
       queryIsPB = true;
@@ -153,5 +153,7 @@ public class GenomicsDBInputPartition implements InputPartition, GenomicsDBInput
       query = g.getQueryJsonFile();
       queryIsPB = false;
     }
+
+    readerType = g.getReaderType();
   }
 }
