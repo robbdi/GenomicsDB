@@ -88,8 +88,18 @@ public class GenomicsDBSchemaFactory {
     fields.add(DataTypes.createStructField("contigName", DataTypes.StringType, true));
     fields.add(DataTypes.createStructField("start", DataTypes.LongType, true));
     fields.add(DataTypes.createStructField("end", DataTypes.LongType, true));
-    //omit for now
-    //calls.add(DataTypes.createStructField("genomicFields", DataTypes.StringType, true));
+    //|{REF=C, DP_FORMAT=2, MIN_DP=0, ALT=[<NON_REF>], GQ=0, PL=[0, 0, 0], GT=0/0
+    fields.add(DataTypes.createStructField("REF", DataTypes.StringType, true));
+    fields.add(DataTypes.createStructField("ALT", 
+          DataTypes.createArrayType(DataTypes.StringType, true), true));
+    fields.add(DataTypes.createStructField("GT", 
+          DataTypes.createArrayType(DataTypes.StringType, true), true));
+    fields.add(DataTypes.createStructField("attributes", DataTypes.StringType, true));
+
+    //fields.add(DataTypes.createStructField("PL", 
+    //      DataTypes.createArrayType(DataTypes.IntegerType, true), true));
+    //fields.add(DataTypes.createStructField("GQ", DataTypes.IntegerType, true));
+    //fields.add(DataTypes.createStructField("MIN_DP", DataTypes.IntegerType, true));
     return fields;
 
   }

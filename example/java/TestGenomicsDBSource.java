@@ -236,7 +236,7 @@ public final class TestGenomicsDBSource {
       reader = reader.option("genomicsdb.input.queryjsonfile", qDstFile.getName());
     }
     variants = reader.load();
-    variants.show();
+    variants.show(false);
     
     String tempDir = "./" + UUID.randomUUID().toString();
     

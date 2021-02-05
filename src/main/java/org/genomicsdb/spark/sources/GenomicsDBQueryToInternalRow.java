@@ -34,19 +34,24 @@ import org.genomicsdb.model.Coordinates;
 import org.apache.spark.unsafe.types.UTF8String;
 import org.apache.spark.sql.catalyst.util.ArrayData;
 import org.apache.spark.sql.catalyst.util.GenericArrayData;
-
 import org.apache.spark.sql.catalyst.InternalRow;
+
+import scala.collection.JavaConverters;
+
+import org.json.simple.parser.ParseException;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
+import java.io.IOException;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+
+import java.lang.StringIndexOutOfBoundsException;
+import java.util.stream.Stream;
+import java.util.Map;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ArrayList;
-import scala.collection.JavaConverters;
-import org.json.simple.parser.ParseException;
-import java.io.IOException;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.util.stream.Stream;
 
 public class GenomicsDBQueryToInternalRow extends Converter {
 
@@ -183,10 +188,49 @@ public class GenomicsDBQueryToInternalRow extends Converter {
     callObjects.add(vc.getRowIndex());
     callObjects.add(vc.getColIndex());
     callObjects.add(UTF8String.fromString(vc.getSampleName()));
-    callObjects.add(UTF8String.fromString(vc.getSampleName()));
+    callObjects.add(UTF8String.fromString(vc.getContigName()));
     callObjects.add(vc.getGenomic_interval().getStart());
     callObjects.add(vc.getGenomic_interval().getEnd());
     
+    // go through the genomic fields, and extract common fields
+    Map<String, Object> gfields = vc.getGenomicFields();
+    if (gfields.containsKey("REF")){
+      String ref = (String)gfields.remove("REF");
+      callObjects.add(UTF8String.fromString(ref));
+    }else{
+      callObjects.add(null);
+    }
+    // better representation in VariantCall structure?
+    if (gfields.containsKey("ALT")){
+      String alt = (String)gfields.remove("ALT");
+      String[] alts = alt.substring(1, alt.length() - 1).split(",");
+      UTF8String[] ualts = new UTF8String[alts.length];
+      int i = 0;
+      for (String a: alts){
+        ualts[i++] = UTF8String.fromString(a);
+      }
+      callObjects.add(ArrayData.toArrayData(ualts));
+    }else{
+      callObjects.add(null);
+    } 
+    if (gfields.containsKey("GT")){
+      String genotype = (String)gfields.remove("GT");
+      try{
+        UTF8String a1 = UTF8String.fromString(String.valueOf(genotype.charAt(0)));
+        UTF8String a2 = UTF8String.fromString(String.valueOf(genotype.charAt(2)));
+        UTF8String[] genos = {a1, a2};
+        callObjects.add(ArrayData.toArrayData(genos));
+      }catch (StringIndexOutOfBoundsException e){
+        System.err.println("Non-diploid genotype "+genotype);
+        e.printStackTrace();
+      }
+    }else{
+      callObjects.add(null);
+    }
+
+    // remaining attributes
+    callObjects.add(UTF8String.fromString(gfields.toString()));
+
     InternalRow iRow =
       InternalRow.fromSeq(
         JavaConverters.asScalaIteratorConverter(callObjects.iterator()).asScala().toSeq());
