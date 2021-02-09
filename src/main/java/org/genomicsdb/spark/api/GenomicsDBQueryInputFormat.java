@@ -12,6 +12,7 @@ import org.genomicsdb.reader.GenomicsDBQuery.VariantCall;
 import org.genomicsdb.spark.GenomicsDBConfiguration;
 import org.genomicsdb.spark.GenomicsDBInput;
 import org.genomicsdb.spark.GenomicsDBInputSplit;
+import org.genomicsdb.spark.GenomicsDBQueryUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -105,29 +106,6 @@ public class GenomicsDBQueryInputFormat extends InputFormat<Interval, List<Varia
 
       GenomicsDBQuery query = new GenomicsDBQuery();
 
-      List<Pair> ToColumnRangePairs(List<Coordinates.GenomicsDBColumnOrInterval> intervalLists) {
-        List<Pair> intervalPairs = new ArrayList<>();
-        for (Coordinates.GenomicsDBColumnOrInterval interval : intervalLists) {
-          assert (interval.getColumnInterval().hasTiledbColumnInterval());
-          Coordinates.TileDBColumnInterval tileDBColumnInterval =
-              interval.getColumnInterval().getTiledbColumnInterval();
-          interval.getColumnInterval().getTiledbColumnInterval();
-          assert (tileDBColumnInterval.hasBegin() && tileDBColumnInterval.hasEnd());
-          intervalPairs.add(
-              new Pair(tileDBColumnInterval.getBegin(), tileDBColumnInterval.getEnd()));
-        }
-        return intervalPairs;
-      }
-
-      List<Pair> ToRowRangePairs(List<GenomicsDBExportConfiguration.RowRange> rowRanges) {
-        List<Pair> rangePairs = new ArrayList<>();
-        for (GenomicsDBExportConfiguration.RowRange range : rowRanges) {
-          assert (range.hasLow() && range.hasLow());
-          rangePairs.add(new Pair(range.getLow(), range.getHigh()));
-        }
-        return rangePairs;
-      }
-
       private boolean check_configuration(String key, String value) {
         if (value == null || value.isEmpty()) {
           System.err.println("GenomicsDB Configuration does not contain value for key=" + key);
@@ -140,48 +118,29 @@ public class GenomicsDBQueryInputFormat extends InputFormat<Interval, List<Varia
       @Override
       public void initialize(InputSplit inputSplit, TaskAttemptContext taskAttemptContext)
               throws IOException, InterruptedException {
-        String workspace = null;
-        String vidMappingFile = null;
-        String callsetMappingFile = null;
-        String referenceGenome = null;
-        Long segmentSize = 0L;
 
         JSONObject jsonObject = null;
-        try {
-          JSONParser parser = new JSONParser();
-          jsonObject = (JSONObject)parser.parse(new FileReader(configuration.get(GenomicsDBConfiguration.LOADERJSON)));
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-          e.printStackTrace();
-        } catch (ParseException e) {
-          e.printStackTrace();
-        }
+        jsonObject = GenomicsDBQueryUtils.loadJson(configuration.get(GenomicsDBConfiguration.LOADERJSON));
 
         assert (exportConfiguration.hasArrayName());
 
         long queryHandle;
         if (jsonObject != null) {
-          workspace = (exportConfiguration.hasWorkspace())?exportConfiguration.getWorkspace():(String)jsonObject.get("workspace");
-          vidMappingFile = (exportConfiguration.hasVidMappingFile())?exportConfiguration.getVidMappingFile():(String)jsonObject.get("vid_mapping_file");
-          callsetMappingFile = (exportConfiguration.hasCallsetMappingFile())?exportConfiguration.getCallsetMappingFile():(String)jsonObject.get("callset_mapping_file");
-          referenceGenome = (exportConfiguration.hasReferenceGenome())?exportConfiguration.getReferenceGenome():(String)jsonObject.get("reference_genome");
-          segmentSize = (exportConfiguration.hasSegmentSize())?exportConfiguration.getSegmentSize():(Long)jsonObject.get("segment_size");
-          if (!check_configuration("workspace", workspace) ||
-                  !check_configuration("vid_mapping_file", vidMappingFile) ||
-                  !check_configuration("callset_mapping_file", callsetMappingFile) ||
-                  !check_configuration("reference_genome", referenceGenome)) {
-            throw new RuntimeException("GenomicsDBConfiguration is incomplete. Add required configuration values and restart the operation");
-          }
+          String workspace = GenomicsDBQueryUtils.getWorkspace(exportConfiguration, jsonObject);
+          String vidMappingFile = GenomicsDBQueryUtils.getVidMapping(exportConfiguration, jsonObject);
+          String callsetMappingFile = GenomicsDBQueryUtils.getCallsetMapping(exportConfiguration, jsonObject);
+          String referenceGenome = GenomicsDBQueryUtils.getReferenceGenome(exportConfiguration, jsonObject);
+          Long segmentSize = GenomicsDBQueryUtils.getSegmentSize(exportConfiguration, jsonObject);
           List<String> attributesList = exportConfiguration.getAttributesList();
+
           if (segmentSize > 0) {
             queryHandle = query.connect(workspace, vidMappingFile, callsetMappingFile, referenceGenome, attributesList, segmentSize.longValue());
           } else {
             queryHandle = query.connect(workspace, vidMappingFile, callsetMappingFile, referenceGenome, attributesList);
           }
           intervals = query.queryVariantCalls(queryHandle, exportConfiguration.getArrayName(),
-                  ToColumnRangePairs(exportConfiguration.getQueryColumnRanges(0).getColumnOrIntervalListList()),
-                  ToRowRangePairs(exportConfiguration.getQueryRowRanges(0).getRangeListList()));
+                  GenomicsDBQueryUtils.ToColumnRangePairs(exportConfiguration.getQueryColumnRanges(0).getColumnOrIntervalListList()),
+                  GenomicsDBQueryUtils.ToRowRangePairs(exportConfiguration.getQueryRowRanges(0).getRangeListList()));
         } else {
           queryHandle = query.connectExportConfiguration(exportConfiguration);
           intervals = query.queryVariantCalls(queryHandle, exportConfiguration.getArrayName());

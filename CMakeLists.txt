@@ -435,6 +435,7 @@ if(BUILD_JAVA)
         ./src/main/java/org/genomicsdb/spark/GenomicsDBJavaSparkFactory.java
         ./src/main/java/org/genomicsdb/spark/GenomicsDBPartitionInfo.java
 	./src/main/java/org/genomicsdb/spark/GenomicsDBQueryInfo.java
+       	./src/main/java/org/genomicsdb/spark/GenomicsDBQueryUtils.java
         ./src/main/java/org/genomicsdb/spark/GenomicsDBSchemaFactory.java
         ./src/main/java/org/genomicsdb/spark/GenomicsDBInput.java
         ./src/main/java/org/genomicsdb/Constants.java
@@ -476,7 +477,9 @@ if(BUILD_JAVA)
           ./src/main/java/org/genomicsdb/spark/sources/GenomicsDBScanBuilder.java
           ./src/main/java/org/genomicsdb/spark/sources/GenomicsDBBatch.java
           ./src/main/java/org/genomicsdb/spark/sources/GenomicsDBInputPartition.java
-	  ./src/main/java/org/genomicsdb/spark/sources/GenomicsDBInputPartitionReader.java
+          ./src/main/java/org/genomicsdb/spark/sources/VariantContextToInternalRow.java
+          ./src/main/java/org/genomicsdb/spark/sources/GenomicsDBQueryToInternalRow.java
+          ./src/main/java/org/genomicsdb/spark/sources/GenomicsDBInputPartitionReader.java
 	  ./src/main/java/org/genomicsdb/spark/sources/GenomicsDBPartitionReaderFactory.java
         )
     endif()

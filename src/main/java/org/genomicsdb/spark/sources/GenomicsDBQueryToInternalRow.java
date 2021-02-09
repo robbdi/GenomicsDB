@@ -25,6 +25,7 @@ package org.genomicsdb.spark.sources;
 import org.genomicsdb.spark.GenomicsDBInput;
 import org.genomicsdb.model.GenomicsDBExportConfiguration;
 import org.genomicsdb.spark.Converter;
+import org.genomicsdb.spark.GenomicsDBQueryUtils;
 import org.genomicsdb.reader.GenomicsDBQuery; 
 import org.genomicsdb.reader.GenomicsDBQuery.Interval;
 import org.genomicsdb.reader.GenomicsDBQuery.Pair;
@@ -61,14 +62,6 @@ public class GenomicsDBQueryToInternalRow extends Converter {
   private GenomicsDBQuery query;
   private long queryHandle;
 
-  private String workspace;
-  private String vidMapping;
-  private String callsetMapping;
-  private String referenceGenome;
-  private long segmentSize = 0L;
-  private List<String> attributesList;
-
-
   public GenomicsDBQueryToInternalRow(GenomicsDBInputPartition iPartition) {
     inputPartition = iPartition;
     String loader = iPartition.getLoader();
@@ -85,24 +78,30 @@ public class GenomicsDBQueryToInternalRow extends Converter {
     this.query = new GenomicsDBQuery();
 
     // connect parameters
-    setAttributes(loader);
-    this.attributesList = exportConfiguration.getAttributesList();
+    JSONObject jsonObject = null;
+    jsonObject = GenomicsDBQueryUtils.loadJson(loader);
+
+    String workspace = GenomicsDBQueryUtils.getWorkspace(exportConfiguration, jsonObject);
+    String vidMapping = GenomicsDBQueryUtils.getVidMapping(exportConfiguration, jsonObject);
+    String callsetMapping = GenomicsDBQueryUtils.getCallsetMapping(exportConfiguration, jsonObject);
+    String referenceGenome = GenomicsDBQueryUtils.getReferenceGenome(exportConfiguration, jsonObject);
+    long segmentSize = GenomicsDBQueryUtils.getSegmentSize(exportConfiguration, jsonObject);
+    List<String> attributesList = exportConfiguration.getAttributesList();
     
     List<Interval> intervals;
    
-    if (this.workspace != null && this.vidMapping != null && this.callsetMapping != null && this.referenceGenome != null){ 
-
+    if (jsonObject != null){
       // connection
-      if (this.segmentSize > 0) {
-        this.queryHandle = query.connect(workspace, vidMapping, callsetMapping, referenceGenome, attributesList, segmentSize);
+      if (segmentSize > 0) {
+        queryHandle = query.connect(workspace, vidMapping, callsetMapping, referenceGenome, attributesList, segmentSize);
       } else {
-        this.queryHandle = query.connect(workspace, vidMapping, callsetMapping, referenceGenome, attributesList);
+        queryHandle = query.connect(workspace, vidMapping, callsetMapping, referenceGenome, attributesList);
       }
 
       // query
       intervals = query.queryVariantCalls(queryHandle, exportConfiguration.getArrayName(),
-                  ToColumnRangePairs(exportConfiguration.getQueryColumnRanges(0).getColumnOrIntervalListList()),
-                  ToRowRangePairs(exportConfiguration.getQueryRowRanges(0).getRangeListList()));
+                  GenomicsDBQueryUtils.ToColumnRangePairs(exportConfiguration.getQueryColumnRanges(0).getColumnOrIntervalListList()),
+                  GenomicsDBQueryUtils.ToRowRangePairs(exportConfiguration.getQueryRowRanges(0).getRangeListList()));
     } else {
       
       queryHandle = query.connectExportConfiguration(exportConfiguration);
@@ -111,69 +110,6 @@ public class GenomicsDBQueryToInternalRow extends Converter {
     }
     query.disconnect(queryHandle);
     this.iterator = intervals.stream().flatMap(i -> i.getCalls().stream()).iterator();
-  }
-
-
-  private boolean check_configuration(String key, String value) {
-    if (value == null || value.isEmpty()) {
-      System.err.println("GenomicsDB Configuration does not contain value for key=" + key);
-      return false;
-    } else {
-      return true;
-    }
-  }
-
-  private void setAttributes(String loader) throws RuntimeException {
-    JSONObject jsonObject = null;
-    try {
-      JSONParser parser = new JSONParser();
-      jsonObject = (JSONObject)parser.parse(new FileReader(loader));
-    } catch (FileNotFoundException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (ParseException e) {
-      e.printStackTrace();
-    }
-    if (jsonObject != null) {
-      this.workspace = (this.exportConfiguration.hasWorkspace())?this.exportConfiguration.getWorkspace():(String)jsonObject.get("workspace");
-      this.vidMapping = (this.exportConfiguration.hasVidMappingFile())?this.exportConfiguration.getVidMappingFile():(String)jsonObject.get("vid_mapping_file");
-      this.callsetMapping = (this.exportConfiguration.hasCallsetMappingFile())?this.exportConfiguration.getCallsetMappingFile():(String)jsonObject.get("callset_mapping_file");
-      this.referenceGenome = (this.exportConfiguration.hasReferenceGenome())?this.exportConfiguration.getReferenceGenome():(String)jsonObject.get("reference_genome");
-      this.segmentSize = (this.exportConfiguration.hasSegmentSize())?this.exportConfiguration.getSegmentSize():(Long)jsonObject.get("segment_size");
-      if (!check_configuration("workspace", this.workspace) ||
-          !check_configuration("vid_mapping_file", this.vidMapping) ||
-          !check_configuration("callset_mapping_file", this.callsetMapping) ||
-          !check_configuration("reference_genome", this.referenceGenome)) {
-          throw new RuntimeException("GenomicsDBConfiguration is incomplete. Add required configuration values and restart the operation");
-      }
-    }
-  }
-
-  // this is dupliated functionality from the api class, should consider moving to a util class 
-  // to avoid duplication.
-  private List<Pair> ToColumnRangePairs(List<Coordinates.GenomicsDBColumnOrInterval> intervalLists) {
-    List<Pair> intervalPairs = new ArrayList<>();
-    for (Coordinates.GenomicsDBColumnOrInterval interval : intervalLists) {
-      assert (interval.getColumnInterval().hasTiledbColumnInterval());
-      Coordinates.TileDBColumnInterval tileDBColumnInterval =
-        interval.getColumnInterval().getTiledbColumnInterval();
-      interval.getColumnInterval().getTiledbColumnInterval();
-      assert (tileDBColumnInterval.hasBegin() && tileDBColumnInterval.hasEnd());
-      intervalPairs.add(
-        new Pair(tileDBColumnInterval.getBegin(), tileDBColumnInterval.getEnd()));
-    }
-    return intervalPairs;
-  }
-
-
-  private List<Pair> ToRowRangePairs(List<GenomicsDBExportConfiguration.RowRange> rowRanges) {
-    List<Pair> rangePairs = new ArrayList<>();
-    for (GenomicsDBExportConfiguration.RowRange range : rowRanges) {
-      assert (range.hasLow() && range.hasLow());
-      rangePairs.add(new Pair(range.getLow(), range.getHigh()));
-    }
-    return rangePairs;
   }
 
   public Iterator getIterator(){
