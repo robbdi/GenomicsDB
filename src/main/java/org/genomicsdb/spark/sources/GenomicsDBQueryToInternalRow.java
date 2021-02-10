@@ -138,28 +138,19 @@ public class GenomicsDBQueryToInternalRow extends Converter {
     }
     // better representation in VariantCall structure?
     if (gfields.containsKey("ALT")){
-      String alt = (String)gfields.remove("ALT");
-      String[] alts = alt.substring(1, alt.length() - 1).split(",");
-      UTF8String[] ualts = new UTF8String[alts.length];
+      String[] alt = (String[])gfields.remove("ALT");
+      UTF8String[] alts = new UTF8String[alt.length];
       int i = 0;
-      for (String a: alts){
-        ualts[i++] = UTF8String.fromString(a);
+      for (String a: alt){
+        alts[i++] = UTF8String.fromString(a);
       }
-      callObjects.add(ArrayData.toArrayData(ualts));
+      callObjects.add(ArrayData.toArrayData(alts));
     }else{
       callObjects.add(null);
     } 
     if (gfields.containsKey("GT")){
-      String genotype = (String)gfields.remove("GT");
-      try{
-        UTF8String a1 = UTF8String.fromString(String.valueOf(genotype.charAt(0)));
-        UTF8String a2 = UTF8String.fromString(String.valueOf(genotype.charAt(2)));
-        UTF8String[] genos = {a1, a2};
-        callObjects.add(ArrayData.toArrayData(genos));
-      }catch (StringIndexOutOfBoundsException e){
-        System.err.println("Non-diploid genotype "+genotype);
-        e.printStackTrace();
-      }
+      int[] genotype = (int[])gfields.remove("GT");
+      callObjects.add(ArrayData.toArrayData(genotype));
     }else{
       callObjects.add(null);
     }

@@ -89,6 +89,12 @@ typedef struct genomic_field_type_t {
   inline bool is_string() const {
     return (type_idx == std::type_index(typeid(char))) && !is_fixed_num_elements;
   }
+  inline bool is_int_array() const {
+    return is_int() && num_elements != 1;
+  }
+  inline bool is_char_array() const {
+    return is_char() && num_elements != 1;
+  }
   inline bool contains_phase_information() const {
     return contains_phase_info;
   }

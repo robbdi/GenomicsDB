@@ -27,6 +27,8 @@ import org.genomicsdb.exception.GenomicsDBException;
 import org.genomicsdb.model.GenomicsDBExportConfiguration;
 
 import java.io.Serializable;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import java.util.*;
 
 public class GenomicsDBQuery {
@@ -100,9 +102,24 @@ public class GenomicsDBQuery {
       return genomicFields;
     }
 
+    public Map<String, String> getGenomicFieldsStr(){
+      Map<String,String> gfields = new HashMap<String,String>();
+      for (Map.Entry<String, Object> entry : genomicFields.entrySet()) {
+        Class c = entry.getValue().getClass();
+        if (entry.getValue() instanceof String[]){
+          gfields.put(entry.getKey(), Arrays.toString((String[])entry.getValue()));
+        }else if (entry.getValue() instanceof int[]){
+           gfields.put(entry.getKey(), Arrays.toString((int[])entry.getValue()));       
+        }else{
+          gfields.put(entry.getKey(), entry.getValue().toString());
+        }
+      }
+      return gfields;
+    }
+
     @Override
     public String toString() {
-      return "row="+rowIndex+" col="+colIndex+" "+sampleName+" "+contigName+":"+genomic_interval.toString()+" "+genomicFields;
+      return "row="+rowIndex+" col="+colIndex+" "+sampleName+" "+contigName+":"+genomic_interval.toString()+" "+getGenomicFieldsStr();
     }
   }
 

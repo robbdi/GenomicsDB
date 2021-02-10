@@ -93,9 +93,11 @@ public class GenomicsDBSchemaFactory {
     fields.add(DataTypes.createStructField("ALT", 
           DataTypes.createArrayType(DataTypes.StringType, true), true));
     fields.add(DataTypes.createStructField("GT", 
-          DataTypes.createArrayType(DataTypes.StringType, true), true));
+          DataTypes.createArrayType(DataTypes.IntegerType, true), true));
     fields.add(DataTypes.createStructField("attributes", DataTypes.StringType, true));
 
+    // the fields in here should be provided by the input schema, 
+    // similar to pushing projection to database
     //fields.add(DataTypes.createStructField("PL", 
     //      DataTypes.createArrayType(DataTypes.IntegerType, true), true));
     //fields.add(DataTypes.createStructField("GQ", DataTypes.IntegerType, true));

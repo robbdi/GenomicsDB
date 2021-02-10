@@ -66,6 +66,7 @@ static jmethodID java_Pair_getEnd_;
 
 JNIEXPORT void JNICALL
 Java_org_genomicsdb_reader_GenomicsDBQuery_jniInitialize(JNIEnv *env, jclass cls) {
+    
     //java.util.ArrayList
     INIT(java_ArrayList_, static_cast<jclass>(env->NewGlobalRef(env->FindClass("java/util/ArrayList"))));
     INIT(java_ArrayList_init_, env->GetMethodID(java_ArrayList_, "<init>", "()V"));
@@ -151,6 +152,49 @@ genomicsdb_ranges_t to_genomicsdb_ranges_vector(JNIEnv *env, jobject arrayList) 
   return result;
 }
 
+// build alt allele array in jni, since we need to iterate over 
+// the array to build the java array. This way we do it once.
+jobjectArray to_alt_array(JNIEnv *env, genomic_field_t field){
+  std::stringstream ss(field.str_value());
+  std::string item;
+  const int asize = (static_cast<int>(field.get_num_elements())+1)/2;
+  std::string alts[asize];    
+
+  jobjectArray value = (jobjectArray)env->NewObjectArray(asize, 
+    env->FindClass("java/lang/String"),0);
+  int i = 0;
+  // phased allele separator
+  while (std::getline(ss, item, '|')){
+    if (i % 2 == 0){
+      env->SetObjectArrayElement(value,i,env->NewStringUTF(item.c_str()));
+    }
+  }
+  return value;
+}
+
+jintArray to_int_array(JNIEnv *env, genomic_field_t field){
+  const int fsize = static_cast<int>(field.get_num_elements());
+  jintArray value = env->NewIntArray(fsize);
+  int i;
+  int intarr[fsize];
+  for(i=0; i < fsize; i++){
+    intarr[i] = field.int_value_at(i);
+  }
+  env->SetIntArrayRegion(value,0,fsize,intarr);  
+  return value;
+}
+
+jobjectArray to_char_array(JNIEnv *env, genomic_field_t field, genomic_field_type_t field_type){
+  const int fsize = static_cast<int>(field.get_num_elements());
+  jobjectArray value = (jobjectArray)env->NewObjectArray(fsize, 
+    env->FindClass("java/lang/String"),0);
+  int i;
+  for(i=0; i < fsize; i++){
+    env->SetObjectArrayElement(value,i,env->NewStringUTF(field.to_string(i, field_type).c_str()));
+  }
+  return value;
+}
+
 jobject to_java_map(JNIEnv *env, jobject obj, std::vector<genomic_field_t> genomic_fields, const std::shared_ptr<std::map<std::string, genomic_field_type_t>> genomic_field_types) {
   jobject java_Map = env->NewObject(java_HashMap_, java_HashMap_init_);
   for (std::vector<genomic_field_t>::iterator it = genomic_fields.begin() ; it != genomic_fields.end(); ++it) {
@@ -159,12 +203,29 @@ jobject to_java_map(JNIEnv *env, jobject obj, std::vector<genomic_field_t> genom
     if (genomic_field_types->find(field.name) == genomic_field_types->end()) {
       throw GenomicsDBException("Genomic Field="+field.name+" does not seem to have an associated type");
     }
-    // TODO: Return appropriate objects based on type
+
     const genomic_field_type_t field_type =  genomic_field_types->at(field.name);
-    jstring value = env->NewStringUTF(field.to_string(field_type).c_str());
-    env->CallObjectMethod(java_Map, java_HashMap_put_, key, value);
+    if (field.name.compare("ALT") == 0){
+      jobjectArray value = to_alt_array(env, field);     
+      env->CallObjectMethod(java_Map, java_HashMap_put_, key, value);
+      env->DeleteLocalRef(value); 
+    }
+    else if (field_type.is_int_array()){
+      jintArray value = to_int_array(env, field);
+      env->CallObjectMethod(java_Map, java_HashMap_put_, key, value);
+      env->DeleteLocalRef(value);
+    }
+    else if (field_type.is_char_array()){
+      jobjectArray value = to_char_array(env, field, field_type);
+      env->CallObjectMethod(java_Map, java_HashMap_put_, key, value);
+      env->DeleteLocalRef(value);
+    }
+    else{
+      jstring value = env->NewStringUTF(field.to_string(field_type).c_str());
+      env->CallObjectMethod(java_Map, java_HashMap_put_, key, value);
+      env->DeleteLocalRef(value);
+    }
     env->DeleteLocalRef(key);
-    env->DeleteLocalRef(value);
   }
   return java_Map;
 }
