@@ -22,9 +22,12 @@
 
 #include "genomicsdb_GenomicsDBQuery.h"
 #include "genomicsdb.h"
+#include "gt_common.h"
 
 #include <assert.h>
 #include <mutex>
+
+#define NON_REF "<NON_REF>"
 
 //java.util.ArrayList
 static jclass java_ArrayList_ ;
@@ -153,7 +156,7 @@ genomicsdb_ranges_t to_genomicsdb_ranges_vector(JNIEnv *env, jobject arrayList) 
 }
 
 // build alt allele array in jni, since we need to iterate over 
-// the array to build the java array. This way we do it once.
+// the array to build the java array.
 jobjectArray to_alt_array(JNIEnv *env, genomic_field_t field){
   std::stringstream ss(field.str_value());
   std::string item;
@@ -162,11 +165,13 @@ jobjectArray to_alt_array(JNIEnv *env, genomic_field_t field){
 
   jobjectArray value = (jobjectArray)env->NewObjectArray(asize, 
     env->FindClass("java/lang/String"),0);
-  int i = 0;
   // phased allele separator
-  while (std::getline(ss, item, '|')){
-    if (i % 2 == 0){
-      env->SetObjectArrayElement(value,i,env->NewStringUTF(item.c_str()));
+  int i = 0;
+  while (std::getline(ss, item, PHASED_ALLELE_SEPARATOR)){
+    if (IS_NON_REF_ALLELE(item)){
+      env->SetObjectArrayElement(value,i++,env->NewStringUTF(NON_REF));
+    }else{
+      env->SetObjectArrayElement(value,i++,env->NewStringUTF(item.c_str()));
     }
   }
   return value;
