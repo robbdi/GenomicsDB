@@ -125,7 +125,7 @@ public final class TestGenomicsDBSource {
 
   public static void main(final String[] args) throws IOException,
          org.json.simple.parser.ParseException {
-    LongOpt[] longopts = new LongOpt[7];
+    LongOpt[] longopts = new LongOpt[8];
     longopts[0] = new LongOpt("loader", LongOpt.REQUIRED_ARGUMENT, null, 'l');
     longopts[1] = new LongOpt("query", LongOpt.REQUIRED_ARGUMENT, null, 'q');
     longopts[2] = new LongOpt("vid", LongOpt.REQUIRED_ARGUMENT, null, 'v');
@@ -133,19 +133,22 @@ public final class TestGenomicsDBSource {
     longopts[4] = new LongOpt("spark_master", LongOpt.REQUIRED_ARGUMENT, null, 's');
     longopts[5] = new LongOpt("use-query-protobuf", LongOpt.NO_ARGUMENT, null, 'p');
     longopts[6] = new LongOpt("gdb_datasource", LongOpt.OPTIONAL_ARGUMENT, null, 'd');
+    longopts[7] = new LongOpt("gdb_reader", LongOpt.OPTIONAL_ARGUMENT, null, 'r');
 
     if (args.length < 8) {
       System.err.println(
           "Usage:\n\t--loader <loader.json> --query <query.json> --vid <vid.json> "
               + "--spark_master <sparkMaster>"
-              +"\nOptional args:\n--hostfile <hostfile> --use-query-protobuf --gdb_datasource=<gdbDataSource>");
+              +"\nOptional args:\n--hostfile <hostfile> --use-query-protobuf --gdb_datasource=<gdbDataSource>"
+              +"--gdb_reader=<gdbReaderType>");
       System.exit(-1);
     }
-    String loaderFile, queryFile, hostfile, vidMapping, sparkMaster, gdbDataSource, jarDir;
+    String loaderFile, queryFile, hostfile, vidMapping, sparkMaster, gdbDataSource, gdbReaderType, jarDir;
     boolean useQueryProtobuf = false;
     gdbDataSource = "org.genomicsdb.spark.sources.GenomicsDBSource";
+    gdbReaderType = "VariantContext";
     loaderFile = queryFile = hostfile = sparkMaster = vidMapping = "";
-    Getopt g = new Getopt("TestGenomicsDBSparkHDFS", args, "l:q:h:s:d:v:p", longopts);
+    Getopt g = new Getopt("TestGenomicsDBSparkHDFS", args, "l:q:h:s:d:r:v:p", longopts);
     int c = -1;
     String optarg;
 
@@ -168,6 +171,9 @@ public final class TestGenomicsDBSource {
           break;
         case 'd':
           gdbDataSource = g.getOptarg();
+          break;
+        case 'r':
+          gdbReaderType = g.getOptarg();
           break;
         case 'p':
           useQueryProtobuf = true;
@@ -219,7 +225,7 @@ public final class TestGenomicsDBSource {
             .format(gdbDataSource)
             .schema(schema)
             .option("genomicsdb.input.loaderjsonfile", lDstFile.getName()) 
-            .option("genomicsdb.reader.type", "GenomicsDBQuery");
+            .option("genomicsdb.reader.type", gdbReaderType);
     if (!hostfile.isEmpty()) {
       reader = reader.option("genomicsdb.input.mpi.hostfile", hostfile);
     }

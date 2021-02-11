@@ -34,6 +34,7 @@ import errno
 from collections import OrderedDict
 
 import common
+import argparse
 
 query_json_template_string="""
 {   
@@ -252,30 +253,32 @@ def sanity_test_spark_bindings(tmpdir, lib_path, jar_dir, jacoco, genomicsdb_ver
     sys.stdout.write("Successful\n")
 
 def main():
-    if(len(sys.argv) < 8):
-        sys.stderr.write('Usage: ./run_spark_hdfs.py <build_dir> <install_dir> <spark_master> <hdfs_namenode> <spark_deploy> <genomicsdb_version> <test_dir> [<gdb_datasource> <build_type>]\n');
-        sys.stderr.write(' Optional Argument 8/9 - gdb_datasource / build_type=Release|Coverage|...\n')
-        sys.exit(-1)
-    exe_path = sys.argv[2]+os.path.sep+'bin'
-    lib_path = sys.argv[2]+os.path.sep+'lib'
-    spark_master = sys.argv[3]
-    namenode = sys.argv[4]
-    jar_dir = sys.argv[1]+os.path.sep+'target'
-    spark_deploy = sys.argv[5]
-    genomicsdb_version = sys.argv[6]
-    test_dir = sys.argv[7]
-    gdb_datasource = ""
-    if (len(sys.argv) == 9):
-      arg8 = sys.argv[8]
-      if (arg8.startswith("org.genomicsdb")):
-        gdb_datasource = arg8
-      else:
-        build_type = arg8
-    if (len(sys.argv) == 10):
-      gdb_datasource = sys.argv[8]
-      build_type = sys.argv[9]
-    else:
-        build_type = "default"
+    parser = argparse.ArgumentParser(description='GenomicsDB Test Runner for Spark / HDFS.')
+    parser.add_argument('build_dir',  help='GenomicsDB build directory')
+    parser.add_argument('install_dir', help='GenomicsDB install directory')
+    parser.add_argument('spark_master', help='Spark Master IP')
+    parser.add_argument('hdfs_namenode', help='HDFS Namenode')
+    parser.add_argument('spark_deploy', help='Spark deploy mode')
+    parser.add_argument('genomicsdb_version', help='GenomicsDB version to use in testing')
+    parser.add_argument('test_dir', help='GenomicsDB test directory')
+    parser.add_argument('--build_type', nargs='?', help='Release|Coverage|...', default='default')
+    parser.add_argument('--gdb_datasource', nargs='?', 
+        help='GenomicsDB DataSource; if not specified runs org.genomicsdb.spark.sources.GenomicsDBSource', default = '')
+    parser.add_argument('--gdb_reader', nargs='?', help='Reader type for DataFrame; if not specific runs VariantContext', default = '')
+    args = parser.parse_args()
+    
+    exe_path = args.install_dir+os.path.sep+'bin'
+    lib_path = args.install_dir+os.path.sep+'lib'
+    spark_master = args.spark_master
+    namenode = args.hdfs_namenode
+    jar_dir = args.build_dir+os.path.sep+'target'
+    spark_deploy = args.spark_deploy
+    genomicsdb_version = args.genomicsdb_version
+    test_dir = args.test_dir
+    gdb_datasource = args.gdb_datasource 
+    build_type = args.build_type
+    gdb_reader = args.gdb_reader
+    
     #Switch to tests directory
     parent_dir=os.path.dirname(os.path.realpath(__file__))
     os.chdir(parent_dir)
