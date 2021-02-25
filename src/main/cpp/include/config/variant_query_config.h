@@ -232,6 +232,9 @@ class VariantQueryConfig : public GenomicsDBConfigBase {
   inline void set_done_bookkeeping(bool value) {
     m_done_bookkeeping = value;
   }
+  inline bool is_querying_all_rows() const {
+    return m_query_all_rows;
+  }
   /*
    * Function that specifies which rows to query
    */

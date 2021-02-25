@@ -435,7 +435,7 @@ if(BUILD_JAVA)
         ./src/main/java/org/genomicsdb/spark/GenomicsDBJavaSparkFactory.java
         ./src/main/java/org/genomicsdb/spark/GenomicsDBPartitionInfo.java
 	./src/main/java/org/genomicsdb/spark/GenomicsDBQueryInfo.java
-       	./src/main/java/org/genomicsdb/spark/GenomicsDBQueryUtils.java
+       	./src/main/java/org/genomicsdb/GenomicsDBQueryUtils.java
         ./src/main/java/org/genomicsdb/spark/GenomicsDBSchemaFactory.java
         ./src/main/java/org/genomicsdb/spark/GenomicsDBInput.java
         ./src/main/java/org/genomicsdb/Constants.java

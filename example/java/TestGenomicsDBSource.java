@@ -211,8 +211,11 @@ public final class TestGenomicsDBSource {
     try {
       GenomicsDBSchemaFactory schemaBuilder = new GenomicsDBSchemaFactory(loaderFile);
       StructType querySchema = getSchemaFromQuery(new File(queryFile), vidMapping);
-      //schema = schemaBuilder.buildSchemaWithVid(querySchema.fields());
-      schema = schemaBuilder.intervalSchema();
+      if (gdbReaderType.equals("VariantContext")){
+        schema = schemaBuilder.buildSchemaWithVid(querySchema.fields());
+      }else{
+        schema = schemaBuilder.intervalSchema();
+      }
       // test building schema without vid
       StructType schemaTest = GenomicsDBSchemaFactory.buildSchema(querySchema.fields());
       
@@ -241,20 +244,22 @@ public final class TestGenomicsDBSource {
     } else {
       reader = reader.option("genomicsdb.input.queryjsonfile", qDstFile.getName());
     }
-    variants = reader.load();
-    variants.show(false);
-    
+    variants = reader.load(); 
     String tempDir = "./" + UUID.randomUUID().toString();
-    
+    variants.show(false);    
     // change number format for our floats so they're easier to read/compare
-    for (String s : floatFields) {
-      if (schemaContainsField(schema, s)) {
-        variants = variants.withColumn(s, bround(col(s), 3));
+    if (gdbReaderType.equals("VariantContext")){
+      for (String s : floatFields) {
+        if (schemaContainsField(schema, s)) {
+          variants = variants.withColumn(s, bround(col(s), 3));
+        }
       }
+
+      variants.coalesce(1).orderBy("contig", "startPos").drop("variantType").write().json(tempDir);
+    }else{
+      variants.coalesce(1).orderBy("contigName", "start").drop("attributes").write().json(tempDir);
     }
-
-    variants.coalesce(1).orderBy("contig", "startPos").drop("variantType").write().json(tempDir);
-
+    
     File f = new File(tempDir);
     File[] matchingFiles =
         f.listFiles(

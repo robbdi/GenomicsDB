@@ -1,0 +1,24 @@
+[
+  {
+    "rowIndex": 0,
+    "colIndex": 12140,
+    "GT": [0, 0],
+    "sampleName": "HG00141",
+    "contigName": "1",
+    "start": 12141,
+    "end": 12295,
+    "REF": "C",
+    "ALT": ["<NON_REF>"]
+  },
+  {
+    "rowIndex": 1,
+    "colIndex": 12144,
+    "GT": [0, 0],
+    "sampleName": "HG01958",
+    "contigName": "1",
+    "start": 12145,
+    "end": 12277,
+    "REF": "C",
+    "ALT": ["<NON_REF>"]
+  }
+]

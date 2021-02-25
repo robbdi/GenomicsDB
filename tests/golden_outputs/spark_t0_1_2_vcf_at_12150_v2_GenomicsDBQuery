@@ -1,0 +1,85 @@
+[
+  {
+    "ALT": [
+      "<NON_REF>"
+    ],
+    "GT": [
+      0,
+      0
+    ],
+    "REF": "C",
+    "colIndex": 12140,
+    "contigName": "1",
+    "end": 12295,
+    "rowIndex": 0,
+    "sampleName": "HG00141",
+    "start": 12141
+  },
+  {
+    "ALT": [
+      "<NON_REF>"
+    ],
+    "GT": [
+      0,
+      0
+    ],
+    "REF": "C",
+    "colIndex": 12144,
+    "contigName": "1",
+    "end": 12277,
+    "rowIndex": 1,
+    "sampleName": "HG01958",
+    "start": 12145
+  },
+  {
+    "ALT": [
+      "A",
+      "<NON_REF>"
+    ],
+    "GT": [
+      0,
+      1
+    ],
+    "REF": "G",
+    "colIndex": 17384,
+    "contigName": "1",
+    "end": 17385,
+    "rowIndex": 0,
+    "sampleName": "HG00141",
+    "start": 17385
+  },
+  {
+    "ALT": [
+      "T",
+      "<NON_REF>"
+    ],
+    "GT": [
+      1,
+      1
+    ],
+    "REF": "G",
+    "colIndex": 17384,
+    "contigName": "1",
+    "end": 17385,
+    "rowIndex": 1,
+    "sampleName": "HG01958",
+    "start": 17385
+  },
+  {
+    "ALT": [
+      "A",
+      "<NON_REF>"
+    ],
+    "GT": [
+      0,
+      1
+    ],
+    "REF": "G",
+    "colIndex": 17384,
+    "contigName": "1",
+    "end": 17385,
+    "rowIndex": 2,
+    "sampleName": "HG01530",
+    "start": 17385
+  }
+]

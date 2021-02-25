@@ -18,6 +18,7 @@
  */
 package org.genomicsdb.reader;
 
+import org.genomicsdb.GenomicsDBQueryUtils;
 import org.genomicsdb.exception.GenomicsDBException;
 import org.genomicsdb.model.GenomicsDBExportConfiguration;
 import org.genomicsdb.reader.GenomicsDBQuery.Interval;
@@ -63,6 +64,8 @@ public class GenomicsDBQueryTest {
     referenceGenome = Paths.get(inputsDir, "chr1_10MB.fasta.gz").toAbsolutePath().toString();
 
     queryJSONFile = Paths.get(inputsDir, "query.json").toAbsolutePath().toString();
+    
+    
     loaderJSONFile = Paths.get(inputsDir, "loader.json").toAbsolutePath().toString();
   }
 
@@ -103,6 +106,14 @@ public class GenomicsDBQueryTest {
   private long connect() {
     GenomicsDBQuery query = new GenomicsDBQuery();
     long handle = query.connect(workspace, vidMapping, callsetMapping, referenceGenome, new ArrayList<>());
+    Assert.assertTrue(handle > 0);
+    return handle;
+  }
+
+  private long connectAndQuery() {
+    GenomicsDBQuery query = new GenomicsDBQuery();
+    long handle = query.connect(workspace, vidMapping, callsetMapping, referenceGenome, new ArrayList<>());
+    //intervals = query.queryVariantCalls(handle, arrayName, 
     Assert.assertTrue(handle > 0);
     return handle;
   }

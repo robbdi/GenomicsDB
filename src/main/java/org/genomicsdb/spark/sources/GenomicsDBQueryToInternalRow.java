@@ -22,10 +22,10 @@
 
 package org.genomicsdb.spark.sources;
 
+import org.genomicsdb.GenomicsDBQueryUtils;
 import org.genomicsdb.spark.GenomicsDBInput;
 import org.genomicsdb.model.GenomicsDBExportConfiguration;
 import org.genomicsdb.spark.Converter;
-import org.genomicsdb.spark.GenomicsDBQueryUtils;
 import org.genomicsdb.reader.GenomicsDBQuery; 
 import org.genomicsdb.reader.GenomicsDBQuery.Interval;
 import org.genomicsdb.reader.GenomicsDBQuery.Pair;
@@ -99,71 +99,76 @@ public class GenomicsDBQueryToInternalRow extends Converter {
       }
 
       // query
-      intervals = query.queryVariantCalls(queryHandle, exportConfiguration.getArrayName(),
-                  GenomicsDBQueryUtils.ToColumnRangePairs(exportConfiguration.getQueryColumnRanges(0).getColumnOrIntervalListList()),
-                  GenomicsDBQueryUtils.ToRowRangePairs(exportConfiguration.getQueryRowRanges(0).getRangeListList()));
-    } else {
-      
-      queryHandle = query.connectExportConfiguration(exportConfiguration);
-      intervals = query.queryVariantCalls(queryHandle, exportConfiguration.getArrayName());
-    
-    }
-    query.disconnect(queryHandle);
-    this.iterator = intervals.stream().flatMap(i -> i.getCalls().stream()).iterator();
-  }
-
-  public Iterator getIterator(){
-    return this.iterator;
-  }
-  
-  public InternalRow get(){
-    VariantCall vc = this.iterator.next();
-    // the schema is actually different here, at first attempt just make sure 
-    // this is passed through with the GenomicsDBSchemaFactory
-    ArrayList<Object> callObjects = new ArrayList<>(inputPartition.getSchema().size());
-    callObjects.add(vc.getRowIndex());
-    callObjects.add(vc.getColIndex());
-    callObjects.add(UTF8String.fromString(vc.getSampleName()));
-    callObjects.add(UTF8String.fromString(vc.getContigName()));
-    callObjects.add(vc.getGenomic_interval().getStart());
-    callObjects.add(vc.getGenomic_interval().getEnd());
-    
-    // go through the genomic fields, and extract common fields
-    Map<String, Object> gfields = vc.getGenomicFields();
-    if (gfields.containsKey("REF")){
-      String ref = (String)gfields.remove("REF");
-      callObjects.add(UTF8String.fromString(ref));
-    }else{
-      callObjects.add(null);
-    }
-    // better representation in VariantCall structure?
-    if (gfields.containsKey("ALT")){
-      String[] alt = (String[])gfields.remove("ALT");
-      UTF8String[] alts = new UTF8String[alt.length];
-      int i = 0;
-      for (String a: alt){
-        alts[i++] = UTF8String.fromString(a);
+      try{
+        intervals = query.queryVariantCalls(queryHandle, exportConfiguration.getArrayName(),
+                GenomicsDBQueryUtils.ToColumnRangePairs(exportConfiguration.getQueryColumnRanges(0).getColumnOrIntervalListList()),
+                GenomicsDBQueryUtils.ToRowRangePairs(exportConfiguration.getQueryRowRanges(0).getRangeListList()));
+      }catch (IndexOutOfBoundsException e){
+        intervals = query.queryVariantCalls(queryHandle, exportConfiguration.getArrayName(),
+                GenomicsDBQueryUtils.ToColumnRangePairs(exportConfiguration.getQueryColumnRanges(0).getColumnOrIntervalListList()));
       }
-      callObjects.add(ArrayData.toArrayData(alts));
-    }else{
-      callObjects.add(null);
-    } 
-    if (gfields.containsKey("GT")){
-      int[] genotype = (int[])gfields.remove("GT");
-      callObjects.add(ArrayData.toArrayData(genotype));
-    }else{
-      callObjects.add(null);
+  } else {
+    
+    queryHandle = query.connectExportConfiguration(exportConfiguration);
+    intervals = query.queryVariantCalls(queryHandle, exportConfiguration.getArrayName());
+  
+  }
+  query.disconnect(queryHandle);
+  this.iterator = intervals.stream().flatMap(i -> i.getCalls().stream()).iterator();
+}
+
+public Iterator getIterator(){
+  return this.iterator;
+}
+
+public InternalRow get(){
+  VariantCall vc = this.iterator.next();
+  // the schema is actually different here, at first attempt just make sure 
+  // this is passed through with the GenomicsDBSchemaFactory
+  ArrayList<Object> callObjects = new ArrayList<>(inputPartition.getSchema().size());
+  callObjects.add(vc.getRowIndex());
+  callObjects.add(vc.getColIndex());
+  callObjects.add(UTF8String.fromString(vc.getSampleName()));
+  callObjects.add(UTF8String.fromString(vc.getContigName()));
+  callObjects.add(vc.getGenomic_interval().getStart());
+  callObjects.add(vc.getGenomic_interval().getEnd());
+  
+  // go through the genomic fields, and extract common fields
+  Map<String, Object> gfields = vc.getGenomicFields();
+  if (gfields.containsKey("REF")){
+    String ref = (String)gfields.remove("REF");
+    callObjects.add(UTF8String.fromString(ref));
+  }else{
+    callObjects.add(null);
+  }
+  // better representation in VariantCall structure?
+  if (gfields.containsKey("ALT")){
+    String[] alt = (String[])gfields.remove("ALT");
+    UTF8String[] alts = new UTF8String[alt.length];
+    int i = 0;
+    for (String a: alt){
+      alts[i++] = UTF8String.fromString(a);
     }
-
-    // remaining attributes
-    callObjects.add(UTF8String.fromString(gfields.toString()));
-
-    InternalRow iRow =
-      InternalRow.fromSeq(
-        JavaConverters.asScalaIteratorConverter(callObjects.iterator()).asScala().toSeq());
-    return iRow;
+    callObjects.add(ArrayData.toArrayData(alts));
+  }else{
+    callObjects.add(null);
+  } 
+  if (gfields.containsKey("GT")){
+    int[] genotype = (int[])gfields.remove("GT");
+    callObjects.add(ArrayData.toArrayData(genotype));
+  }else{
+    callObjects.add(null);
   }
 
-  public void close(){}
+  // remaining attributes
+  callObjects.add(UTF8String.fromString(gfields.toString()));
+
+  InternalRow iRow =
+    InternalRow.fromSeq(
+      JavaConverters.asScalaIteratorConverter(callObjects.iterator()).asScala().toSeq());
+  return iRow;
+}
+
+public void close(){}
 
 }

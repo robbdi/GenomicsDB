@@ -34,6 +34,7 @@
 static std::string ctests_input_dir(GENOMICSDB_CTESTS_DIR);
 
 static std::string query_json(ctests_input_dir+"query.json");
+static std::string query_empty_rows_json(ctests_input_dir+"query_empty_rows.json");
 static std::string loader_json(ctests_input_dir+"loader.json");
 
 static std::string query_with_shared_posixfs_optimizations(ctests_input_dir+"query_with_shared_posixfs_optimizations.json");
@@ -191,5 +192,24 @@ TEST_CASE("Compare configuration with json file and string", "[compare_json_type
   CHECK(query_config_from_file.produce_GT_with_min_PL_value_for_spanning_deletions() == query_config_from_str.produce_GT_with_min_PL_value_for_spanning_deletions());
   CHECK(query_config_from_file.get_vid_mapper().is_initialized() == query_config_from_str.get_vid_mapper().is_initialized());
   CHECK(query_config_from_file.get_vid_mapper().is_callset_mapping_initialized() == query_config_from_str.get_vid_mapper().is_callset_mapping_initialized());
+}
+
+TEST_CASE("Compare configuration when rows empty", "[compare_json_types]") {
+  GenomicsDBImportConfig loader_config;
+  loader_config.read_from_file(loader_json);
+  
+  VariantQueryConfig query_config_from_file;
+  query_config_from_file.update_from_loader(loader_config);
+  query_config_from_file.read_from_file(query_empty_rows_json);
+  query_config_from_file.subset_query_column_ranges_based_on_partition(loader_config);
+
+  char *query_json_buffer=NULL, *loader_json_buffer=NULL;
+  size_t query_json_buffer_length, loader_json_buffer_length;
+  CHECK(TileDBUtils::read_entire_file(query_json, (void **)&query_json_buffer, &query_json_buffer_length) == TILEDB_OK);
+  CHECK(query_json_buffer);
+  CHECK(query_json_buffer_length > 0);
+  
+  // test empty rows
+  CHECK(query_config_from_file.is_querying_all_rows() == true);
 }
 

@@ -1,0 +1,51 @@
+[
+  {
+    "ALT": [
+      "<NON_REF>"
+    ],
+    "GT": [
+      0,
+      0
+    ],
+    "REF": "A",
+    "colIndex": 12202,
+    "contigName": "1",
+    "end": 12280,
+    "rowIndex": 0,
+    "sampleName": "HG00141",
+    "start": 12203
+  },
+  {
+    "ALT": [
+      "TA",
+      "<NON_REF>"
+    ],
+    "GT": [
+      0,
+      1
+    ],
+    "REF": "TCGA",
+    "colIndex": 12206,
+    "contigName": "1",
+    "end": 12210,
+    "rowIndex": 0,
+    "sampleName": "HG00141",
+    "start": 12207
+  },
+  {
+    "ALT": [
+      "<NON_REF>"
+    ],
+    "GT": [
+      0,
+      0
+    ],
+    "REF": "A",
+    "colIndex": 12209,
+    "contigName": "1",
+    "end": 12280,
+    "rowIndex": 0,
+    "sampleName": "HG00141",
+    "start": 12210
+  }
+]

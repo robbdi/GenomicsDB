@@ -12,7 +12,7 @@ import org.genomicsdb.reader.GenomicsDBQuery.VariantCall;
 import org.genomicsdb.spark.GenomicsDBConfiguration;
 import org.genomicsdb.spark.GenomicsDBInput;
 import org.genomicsdb.spark.GenomicsDBInputSplit;
-import org.genomicsdb.spark.GenomicsDBQueryUtils;
+import org.genomicsdb.GenomicsDBQueryUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -137,10 +137,15 @@ public class GenomicsDBQueryInputFormat extends InputFormat<Interval, List<Varia
             queryHandle = query.connect(workspace, vidMappingFile, callsetMappingFile, referenceGenome, attributesList, segmentSize.longValue());
           } else {
             queryHandle = query.connect(workspace, vidMappingFile, callsetMappingFile, referenceGenome, attributesList);
-          }
-          intervals = query.queryVariantCalls(queryHandle, exportConfiguration.getArrayName(),
+          }  
+          try {
+            intervals = query.queryVariantCalls(queryHandle, exportConfiguration.getArrayName(),
                   GenomicsDBQueryUtils.ToColumnRangePairs(exportConfiguration.getQueryColumnRanges(0).getColumnOrIntervalListList()),
                   GenomicsDBQueryUtils.ToRowRangePairs(exportConfiguration.getQueryRowRanges(0).getRangeListList()));
+          } catch (IndexOutOfBoundsException e){
+            intervals = query.queryVariantCalls(queryHandle, exportConfiguration.getArrayName(),
+                  GenomicsDBQueryUtils.ToColumnRangePairs(exportConfiguration.getQueryColumnRanges(0).getColumnOrIntervalListList()));
+          }
         } else {
           queryHandle = query.connectExportConfiguration(exportConfiguration);
           intervals = query.queryVariantCalls(queryHandle, exportConfiguration.getArrayName());

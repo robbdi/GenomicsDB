@@ -426,6 +426,7 @@ def main():
                 ]
             },
     ];
+    loader_tests = [x for x in loader_tests if x['name'] == 't6_7_8']
     if("://" in namenode):
         pid = subprocess.Popen('hadoop fs -mkdir -p '+namenode+'/home/hadoop/.tiledb/', shell=True, stdout=subprocess.PIPE);
         stdout_string = pid.communicate()[0]
@@ -512,6 +513,8 @@ def main():
                 spark_cmd_v2 = 'spark-submit --class TestGenomicsDBSource --master '+spark_master+' --deploy-mode '+spark_deploy+' --total-executor-cores 1 --executor-memory 512M --conf "spark.yarn.executor.memoryOverhead=3700" --conf "spark.executor.extraJavaOptions='+jacoco+'" --conf "spark.driver.extraJavaOptions='+jacoco+'" --jars '+jar_dir+'/genomicsdb-'+genomicsdb_version+'-allinone.jar '+jar_dir+'/genomicsdb-'+genomicsdb_version+'-examples.jar --loader '+loader_json_filename+' --query '+query_json_filename+' --vid '+vid_path_final+' --spark_master '+spark_master;
                 if (gdb_datasource != ""):
                   spark_cmd_v2 += ' --gdb_datasource=' + gdb_datasource
+                if (gdb_reader != ""):
+                  spark_cmd_v2 += ' --gdb_reader=' + gdb_reader
                 if (test_name == "t6_7_8"):
                   spark_cmd_v2 = spark_cmd_v2 + ' --use-query-protobuf';
                 if (test_name == "t0_overlapping"):
@@ -527,9 +530,15 @@ def main():
                     cleanup_and_exit(namenode, tmpdir, -1);
                 stdout_list = stdout_string.decode('utf-8').splitlines(True);
                 stdout_filter = "".join(stdout_list);
+                print(stdout_filter)
                 stdout_json = json.loads(stdout_filter);
                 if('golden_output' in query_param_dict and 'spark' in query_param_dict['golden_output']):
-                    json_golden = get_json_from_file(query_param_dict['golden_output']['spark']+'_v2');
+                    file_name = query_param_dict['golden_output']['spark']+'_v2'
+                    if (gdb_reader != ''):
+                      file_name += '_'+gdb_reader
+                    print(file_name)
+                    print(stdout_json)
+                    json_golden = get_json_from_file(file_name);
                     checkdiff = jsondiff.diff(stdout_json, json_golden);
                     if (not checkdiff):
                         sys.stdout.write('Query test GenomicsDBSource: '+test_name+' with column ranges: '+str(query_param_dict['query_column_ranges'])+' and loaded with '+str(len(col_part))+' partitions passed\n');

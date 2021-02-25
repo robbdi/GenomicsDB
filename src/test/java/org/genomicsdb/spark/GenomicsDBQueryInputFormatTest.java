@@ -48,7 +48,7 @@ public class GenomicsDBQueryInputFormatTest {
     Assert.assertNull(tryInputFormat.getSplits(null));
   }
 
-  @Test
+  @Test(expectedExceptions = IOException.class)
   public void testBasicInputSplitsEmptyLoaderJSON() throws IOException, InterruptedException {
     final GenomicsDBConfiguration tryConfiguration = new GenomicsDBConfiguration();
     tryConfiguration.set(GenomicsDBConfiguration.LOADERJSON, "");
@@ -89,4 +89,5 @@ public class GenomicsDBQueryInputFormatTest {
     final GenomicsDBQueryInputFormat tryInputFormat = new GenomicsDBQueryInputFormat(tryConfiguration);
     Assert.assertNull(tryInputFormat.getSplits(null));
   }
+
 }

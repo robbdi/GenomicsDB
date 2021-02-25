@@ -1,4 +1,4 @@
-package org.genomicsdb.spark;
+package org.genomicsdb;
 
 import org.genomicsdb.model.Coordinates;
 import org.genomicsdb.reader.GenomicsDBQuery.Pair;
