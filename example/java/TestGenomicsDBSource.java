@@ -246,7 +246,7 @@ public final class TestGenomicsDBSource {
     }
     variants = reader.load(); 
     String tempDir = "./" + UUID.randomUUID().toString();
-    variants.show(false);    
+
     // change number format for our floats so they're easier to read/compare
     if (gdbReaderType.equals("VariantContext")){
       for (String s : floatFields) {

@@ -216,9 +216,13 @@ jobject to_java_map(JNIEnv *env, jobject obj, std::vector<genomic_field_t> genom
       env->DeleteLocalRef(value); 
     }
     else if (field_type.is_int_array()){
-      jintArray value = to_int_array(env, field);
-      env->CallObjectMethod(java_Map, java_HashMap_put_, key, value);
-      env->DeleteLocalRef(value);
+      if (field.name.compare("GT") == 0 && field_type.num_elements > 2){
+        throw GenomicsDBException("GenomicQuery currently support diploid genotypes only.");
+      }else{  
+        jintArray value = to_int_array(env, field);
+        env->CallObjectMethod(java_Map, java_HashMap_put_, key, value);
+        env->DeleteLocalRef(value);
+      }
     }
     else if (field_type.is_char_array()){
       jobjectArray value = to_char_array(env, field, field_type);

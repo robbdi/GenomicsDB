@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class GenomicsDBQueryTest {
 
@@ -64,9 +65,9 @@ public class GenomicsDBQueryTest {
     referenceGenome = Paths.get(inputsDir, "chr1_10MB.fasta.gz").toAbsolutePath().toString();
 
     queryJSONFile = Paths.get(inputsDir, "query.json").toAbsolutePath().toString();
-    
-    
+      
     loaderJSONFile = Paths.get(inputsDir, "loader.json").toAbsolutePath().toString();
+  
   }
 
   @Test
@@ -106,14 +107,6 @@ public class GenomicsDBQueryTest {
   private long connect() {
     GenomicsDBQuery query = new GenomicsDBQuery();
     long handle = query.connect(workspace, vidMapping, callsetMapping, referenceGenome, new ArrayList<>());
-    Assert.assertTrue(handle > 0);
-    return handle;
-  }
-
-  private long connectAndQuery() {
-    GenomicsDBQuery query = new GenomicsDBQuery();
-    long handle = query.connect(workspace, vidMapping, callsetMapping, referenceGenome, new ArrayList<>());
-    //intervals = query.queryVariantCalls(handle, arrayName, 
     Assert.assertTrue(handle > 0);
     return handle;
   }
@@ -184,10 +177,11 @@ public class GenomicsDBQueryTest {
     List<Interval> intervals = query.queryVariantCalls(genomicsDBHandle, arrayName);
     assert(intervals.size() == 0);
 
+    // query empty rows
     List<Pair>columnRanges = new ArrayList<>();
     columnRanges.add(new Pair(0L, 1000000000L));
     intervals = query.queryVariantCalls(genomicsDBHandle, arrayName, columnRanges);
-    assert(intervals.size() == 0);
+    assert(intervals.size() == 1);
 
     List<Pair>rowRanges = new ArrayList<>();
     rowRanges.add(new Pair(0L, 3L));
@@ -233,10 +227,11 @@ public class GenomicsDBQueryTest {
     for (VariantCall call : calls) {
       if (call.sampleName.equals("HG00141") && call.contigName.equals("1") && call.genomic_interval.getStart() == 12141 && call.genomic_interval.getEnd() == 12295) {
         foundVariantCall = true;
+        Map<String, String> gfields = call.getGenomicFieldsStr();
         Assert.assertEquals(call.genomicFields.size(), 3);
-        Assert.assertEquals(call.genomicFields.get("REF"), "C");
-        Assert.assertEquals(call.genomicFields.get("ALT"), "[<NON_REF>]");
-        Assert.assertEquals(call.genomicFields.get("GT"), "0/0");
+        Assert.assertEquals(gfields.get("REF"), "C");
+        Assert.assertEquals(gfields.get("ALT"), "[<NON_REF>]");
+        Assert.assertEquals(gfields.get("GT"), "[0, 0]");
       }
     }
     Assert.assertTrue(foundVariantCall, "One Variant Call should have been found");

@@ -426,7 +426,11 @@ def main():
                 ]
             },
     ];
-    loader_tests = [x for x in loader_tests if x['name'] == 't6_7_8']
+    # known features that are missing from GenomicsDBQuery
+    # empty rows and non-diploid genotypes
+    if(gdb_reader == "GenomicsDBQuery"):
+      bypass_tests = ['t6_7_8', 't0_haploid_triploid_1_2_3_triploid_deletion']
+      loader_tests = [x for x in loader_tests if x['name'] not in bypass_tests]
     if("://" in namenode):
         pid = subprocess.Popen('hadoop fs -mkdir -p '+namenode+'/home/hadoop/.tiledb/', shell=True, stdout=subprocess.PIPE);
         stdout_string = pid.communicate()[0]
@@ -530,14 +534,11 @@ def main():
                     cleanup_and_exit(namenode, tmpdir, -1);
                 stdout_list = stdout_string.decode('utf-8').splitlines(True);
                 stdout_filter = "".join(stdout_list);
-                print(stdout_filter)
                 stdout_json = json.loads(stdout_filter);
                 if('golden_output' in query_param_dict and 'spark' in query_param_dict['golden_output']):
                     file_name = query_param_dict['golden_output']['spark']+'_v2'
                     if (gdb_reader != ''):
                       file_name += '_'+gdb_reader
-                    print(file_name)
-                    print(stdout_json)
                     json_golden = get_json_from_file(file_name);
                     checkdiff = jsondiff.diff(stdout_json, json_golden);
                     if (not checkdiff):
