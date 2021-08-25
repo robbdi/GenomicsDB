@@ -122,24 +122,16 @@ EOF
 #    $2 : optional - 0(default) if command should return successfully
 #                    any other value if the command should return a failure
 run_command() {
-  declare -i EXPECT_NZ
-  declare -i GOT_NZ  
-  EXPECT_NZ=0
-  GOT_NZ=0
+  declare -i EXPECTED_RC
+  EXPECTED_RC=0
   if [[ $# -eq 2 && $2 -ne 0 ]]; then
-    EXPECT_NZ=1
+    EXPECTED_RC=255
   fi
   # Execute the command redirecting all output to $TEMP_DIR/output
   $($1 &> $TEMP_DIR/output)
-  retval=$?
-
-  if [[ $retval -ne 0 ]]; then
-    GOT_NZ=1
-  fi
-
-  if [[ $(($GOT_NZ ^ $EXPECT_NZ)) -ne 0 ]]; then
+  if [[ $? -ne $EXPECTED_RC ]]; then
     cat $TEMP_DIR/output
-    die "command '`echo $1`' returned $retval unexpectedly"
+    die "command '`echo $1`' did not return expected RC=$EXPECTED_RC"
   fi
 }
 
@@ -259,10 +251,6 @@ do
         run_command_and_check_results "vcf2genomicsdb_init -w $WORKSPACE -S $SAMPLE_DIR -o -t $COMPRESSION_TEMPLATE" 2 85 24 85 "#$run"
     done
 done
-
-create_compression_template_loader_json -5 -5
-run_command "vcf2genomicsdb_init -w $WORKSPACE -S $SAMPLE_DIR -o -t $COMPRESSION_TEMPLATE"
-run_command "vcf2genomicsdb $WORKSPACE/loader.json" ERR
 
 # Fail if same field in INFO and FORMAT have different types
 create_sample_list inconsistent_DP_t0.vcf.gz
