@@ -133,28 +133,29 @@ SingleCellTileDBIterator::~SingleCellTileDBIterator() {
   m_owned_tiledb_array = 0;
   m_tiledb_array = 0;
 #ifdef DO_PROFILING
-  std::cerr << "Iterator stats";
+  std::stringstream ss;
+  ss << "Iterator stats";
   for (auto i=0u; i<GenomicsDBIteratorStatsEnum::NUM_STATS; ++i)
-    std::cerr << "," << m_num_cells_traversed_stats[i];
-  std::cerr << "\n";
-  std::cerr << "Useless cell segment lengths histogram\n";
+    ss << "," << m_num_cells_traversed_stats[i];
+  ss << "\n";
+  ss << "Useless cell segment lengths histogram\n";
   for (auto i=0ull; i<m_useless_cell_interval_lengths_histogram.size(); ++i)
-    std::cerr << i << "  " <<m_useless_cell_interval_lengths_histogram[i]<<"\n";
+    ss << i << "  " <<m_useless_cell_interval_lengths_histogram[i]<<"\n";
   auto num_live_list_entries = 0ull;
   auto num_free_list_entries = 0ull;
   for (const auto& field : m_fields) {
     num_free_list_entries += field.get_free_buffer_list_length();
     num_live_list_entries += field.get_live_buffer_list_length();
   }
-  std::cerr << "Buffer_lists_lengths final "<<num_free_list_entries
+  ss << "Buffer_lists_lengths final "<<num_free_list_entries
             <<" "<<num_live_list_entries <<"\n";
-  std::cerr << "Histogram:\n";
+  ss << "Histogram:\n";
   for (auto val : m_num_cells_traversed_in_find_intersecting_intervals_mode_histogram)
-    std::cerr << val << "\n";
+    ss << val << "\n";
 #ifdef COUNT_NUM_CELLS_BETWEEN_TWO_CELLS_FROM_THE_SAME_ROW
-  std::cerr << "COUNT_NUM_CELLS_BETWEEN_TWO_CELLS_FROM_THE_SAME_ROW histogram\n";
+  ss << "COUNT_NUM_CELLS_BETWEEN_TWO_CELLS_FROM_THE_SAME_ROW histogram\n";
   for (auto i=0ull; i<m_histogram_cell_counts_since_last_cell_from_same_row.size(); ++i)
-    std::cerr << COUNT_NUM_CELLS_BETWEEN_TWO_CELLS_FROM_THE_SAME_ROW_HISTOGRAM_BIN_SIZE*(i+1ull)
+    ss << COUNT_NUM_CELLS_BETWEEN_TWO_CELLS_FROM_THE_SAME_ROW_HISTOGRAM_BIN_SIZE*(i+1ull)
               << " " << m_histogram_cell_counts_since_last_cell_from_same_row[i] << "\n";
   m_histogram_cell_counts_since_last_cell_from_same_row.clear();
   m_cell_counts_since_last_cell_from_same_row.clear();
@@ -162,9 +163,10 @@ SingleCellTileDBIterator::~SingleCellTileDBIterator() {
 #ifdef PROFILE_NUM_CELLS_TO_TRAVERSE_AT_EVERY_QUERY_INTERVAL
   //Final window
   if (m_num_observed_cells_in_curr_window > 0u)
-    std::cerr << m_observed_cells_in_curr_window[0].second << '\t'
+    ss << m_observed_cells_in_curr_window[0].second << '\t'
               << INT64_MAX-1 << '\t' << m_num_observed_cells_in_curr_window << '\n';
 #endif //PROFILE_NUM_CELLS_TO_TRAVERSE_AT_EVERY_QUERY_INTERVAL
+  logger.info("{}", ss.str());
 #endif //DO_PROFILING
 }
 
@@ -274,8 +276,7 @@ void SingleCellTileDBIterator::begin_new_query_column_interval(TileDB_CTX* tiled
           num_free_list_entries += field.get_free_buffer_list_length();
           num_live_list_entries += field.get_live_buffer_list_length();
         }
-        std::cerr << "Buffer_lists_lengths end_of_intersecting_intervals_mode "<<num_free_list_entries
-                  <<" "<<num_live_list_entries <<"\n";
+        logger.info("Buffer_lists_lengths end_of_intersecting_intervals_mode {} {}", num_free_list_entries, num_live_list_entries);
 #endif
       }
     }
@@ -757,8 +758,7 @@ void SingleCellTileDBIterator::update_sliding_window_to_profile_num_cells_to_tra
   if (num_observed_cells_in_curr_window_for_row_idx_before_increment == 0u) {
     ++m_num_observed_row_idxs_in_curr_window;
     if (m_num_observed_row_idxs_in_curr_window == m_query_config->get_num_rows_to_query())
-      std::cerr << m_observed_cells_in_curr_window[0].second << '\t'
-                << curr_coords[1] << '\t' << m_num_observed_cells_in_curr_window << '\n';
+      logger.info("{}\t{}\t{}", m_observed_cells_in_curr_window[0].second, curr_coords[1], m_num_observed_cells_in_curr_window);
     //Current sliding window is "complete" - move left edge of window
     //Complete == contains at least 1 cell from every row
     auto window_left_idx = 0ull;
@@ -830,9 +830,9 @@ GenomicsDBGVCFIterator::~GenomicsDBGVCFIterator() {
     delete m_cell;
   m_cell = 0;
 #ifdef DO_PROFILING
-  std::cerr << "INIT INVALID HISTOGRAM\n";
+  logger.warn("INIT INVALID HISTOGRAM");
   for(auto i=0u;i<INIT_INVALID_HISTOGRAM_NUM_BINS;++i)
-    std::cerr << i*m_bin_size << " "<<m_num_times_initialized[i] << " " <<m_num_times_invalidated[i] <<"\n";
+    logger.warn("{} {} {}", i*m_bin_size, m_num_times_initialized[i], m_num_times_invalidated[i]);
 #endif
 }
 

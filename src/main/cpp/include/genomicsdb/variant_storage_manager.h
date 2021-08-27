@@ -56,8 +56,10 @@ class VariantArrayCellIterator {
       tiledb_array_iterator_finalize(m_tiledb_array_iterator);
     m_tiledb_array_iterator = 0;
 #ifdef DO_PROFILING
-    m_tiledb_timer.print("TileDB iterator", std::cerr);
-    m_tiledb_to_buffer_cell_timer.print("TileDB to buffer cell", std::cerr);
+    std::stringstream ss;
+    m_tiledb_timer.print("TileDB iterator", ss);
+    m_tiledb_to_buffer_cell_timer.print("TileDB to buffer cell", ss);
+    logger.info("{}", ss.str());
 #endif
   }
   //Delete copy and move constructors

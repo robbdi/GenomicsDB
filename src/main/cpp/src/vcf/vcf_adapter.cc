@@ -294,7 +294,9 @@ VCFAdapter::~VCFAdapter() {
   }
   m_output_fptr = 0;
 #ifdef DO_PROFILING
-  m_vcf_serialization_timer.print("bcf_t serialization", std::cerr);
+  std::stringstream;
+  m_vcf_serialization_timer.print("bcf_t serialization", ss);
+  logger.info("{}", ss.str());
 #endif
 }
 

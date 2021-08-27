@@ -87,8 +87,7 @@ void BufferVariantCell::set_cell(const void* ptr) {
 #ifdef DEBUG_VARIANT_CELL_OFFSETS
     //For variable length fields, data_offset == length_offset+sizeof(int)
     //For fixed size fields, data_offset == length_offset
-    std::cerr << m_array_schema->attribute_name(schema_idx)
-              << " length_offset "<< offset;
+    logger.info("{} length_offset {}", m_array_schema->attribute_name(schema_idx), offset);
 #endif
     //check if variable length field - read length from buffer
     if (m_array_schema->is_variable_length_field(schema_idx)) {
@@ -97,7 +96,7 @@ void BufferVariantCell::set_cell(const void* ptr) {
       offset += sizeof(int);
     }
 #ifdef DEBUG_VARIANT_CELL_OFFSETS
-    std::cerr << " data_offset "<<offset<<" #elements "<< length << "\n";
+    logger.info("data_offset {} #elements {}", offset, length);
 #endif
     m_field_ptrs[i] = cell_ptr + offset;      //field pointer points to region in buffer AFTER the length
     offset += (length*(m_array_schema->element_size(schema_idx)));

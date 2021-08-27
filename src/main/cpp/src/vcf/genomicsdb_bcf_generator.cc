@@ -108,7 +108,9 @@ GenomicsDBBCFGenerator::~GenomicsDBBCFGenerator() {
     delete m_storage_manager;
   m_storage_manager = 0;
 #ifdef DO_PROFILING
-  m_timer.print("GenomicsDBBCFGenerator", std::cerr);
+  std::stringstream ss;
+  m_timer.print("GenomicsDBBCFGenerator", ss);
+  logger.info("{}", ss.str());
 #endif
 }
 

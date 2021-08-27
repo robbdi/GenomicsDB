@@ -322,7 +322,7 @@ void GatherVariantCalls::operate(VariantCall& variant_call,
                                  const VariantQueryConfig& query_config,
                                  const VariantArraySchema& schema) {
   // m_variant_calls.push_back(std::move(variant_call));
-  std::cout << "TBD: In GatherVariantCalls::operate()" << std::endl;
+  logger.info("TBD: In GatherVariantCalls::operate()");
 }
 
 void GatherVariantCalls::operate_on_columnar_cell(const GenomicsDBColumnarCell& cell,
@@ -345,8 +345,7 @@ void GatherVariantCalls::operate_on_columnar_cell(const GenomicsDBColumnarCell& 
   std::string contig_name;
   int64_t contig_position;
   if (!m_vid_mapper.get_contig_location(coords[1], contig_name, contig_position)) {
-    std::cerr << "Could not find genomic interval associated with Variant(Call) at "
-              << coords[1] << std::endl;
+    logger.error("Could not find genomic interval associated with Variant(Call) at {}", coords[1]);
     return;
   }
 
@@ -378,13 +377,15 @@ void print_variant_calls(const VariantQueryConfig& query_config,
                          const VariantQueryProcessor& query_processor,
                          const VidMapper& vid_mapper) {
   std::string indent_prefix = "    ";
-  std::cout << "{\n";
+  std::stringstream ss;
+  ss << "{\n";
   //variant_calls is an array of dictionaries
-  std::cout << indent_prefix << "\"variant_calls\": [\n";
-  VariantCallPrintOperator printer(std::cout, indent_prefix+indent_prefix, &vid_mapper);
+  ss << indent_prefix << "\"variant_calls\": [\n";
+  VariantCallPrintOperator printer(ss, indent_prefix+indent_prefix, &vid_mapper);
   query_processor.iterate_over_cells(query_processor.get_array_descriptor(), query_config, printer, true);
-  std::cout << "\n" << indent_prefix << "]\n";
-  std::cout << "}\n";
+  ss << "\n" << indent_prefix << "]\n";
+  ss << "}\n";
+  logger.info("{}", ss.str());
 }
 #endif
 
@@ -661,17 +662,19 @@ void GenomicsDBVariantCallProcessor::process(const std::string& sample_name,
                                              const int64_t* coords,
                                              const genomic_interval_t& genomic_interval,
                                              const std::vector<genomic_field_t>& genomic_fields) {
-  std::cout << "\t sample=" << sample_name << "\n";
-  std::cout << "\t row=" << coords[0] << " position=" << coords[1]
+  std::stringstream ss;
+  ss << "\t sample=" << sample_name << "\n";
+  ss << "\t row=" << coords[0] << " position=" << coords[1]
             << "\n\t genomic_interval=" << genomic_interval.contig_name
             << ":" << genomic_interval.interval.first << "," << genomic_interval.interval.second << "\n";
-  std::cout << "\t genomic_fields\n";
+  ss << "\t genomic_fields\n";
   for(auto genomic_field: genomic_fields) {
-    std::cout << "\t\t" << genomic_field.name << ":" << genomic_field.to_string(get_genomic_field_type(genomic_field.name));
+    ss << "\t\t" << genomic_field.name << ":" << genomic_field.to_string(get_genomic_field_type(genomic_field.name));
   }
-  std::cout << std::endl;
+  ss << std::endl;
+  logger.info("{}", ss.str());
 }
 
 void GenomicsDBVariantCallProcessor::process(const interval_t& interval) {
-  std::cout << "----------------\nInterval:[" << interval.first << "," << interval.second << "]\n\n";
+  logger.info("----------------\nInterval:[{}, {}]", interval.first, interval.second);
 }
