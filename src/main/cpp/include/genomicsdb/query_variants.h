@@ -105,7 +105,8 @@ class GTProfileStats {
     assert(stat_idx < m_stats_tmp_count_vector.size());
     m_stats_tmp_count_vector[stat_idx] = 0;
   }
-  void print_stats(std::ostream& fptr=std::cout) const;
+  void print_stats(std::ostream& fptr) const;
+  void print_stats() const; // prints via logger
   void increment_num_queries() {
     ++m_num_queries;
   }

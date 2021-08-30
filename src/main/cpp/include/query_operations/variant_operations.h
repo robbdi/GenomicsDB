@@ -26,6 +26,7 @@
 #include "variant.h"
 #include "lut.h"
 #include "variant_cell.h"
+#include "genomicsdb_logger.h"
 
 class VariantOperationException : public std::exception {
  public:
@@ -466,16 +467,18 @@ class MaxAllelesCountOperator : public SingleVariantOperatorBase {
     m_total_lines = 0ull;
   }
   ~MaxAllelesCountOperator() {
-    std::cerr << "TOTAL "<<m_total_lines<<"\n";
+    std::stringstream ss;
+    ss << "TOTAL "<<m_total_lines<<"\n";
     while (!m_top_alleles_pq.empty()) {
       auto& top_value = m_top_alleles_pq.top();
-      std::cerr << top_value.m_column << "," << top_value.m_merged_reference_allele
+      ss << top_value.m_column << "," << top_value.m_merged_reference_allele
                 << "," << top_value.size();
       for (const auto& alt_allele : top_value.m_merged_alt_alleles)
-        std::cerr << "," << alt_allele;
-      std::cerr << "\n";
+        ss << "," << alt_allele;
+      ss << "\n";
       m_top_alleles_pq.pop();
     }
+    logger.info(ss.str());
   }
   virtual void operate(Variant& variant) {
     SingleVariantOperatorBase::operate(variant);
