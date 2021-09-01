@@ -197,4 +197,20 @@ inline bool FmtWriter::write_if_space_available<char>(char* buffer, const size_t
     return false;
 }
 
+class FmtStream{
+  private:
+    std::ostream& fptr;
+
+  public:
+    FmtStream(std::ostream& fptr) : fptr(fptr) {}
+    FmtStream() = delete;
+    template <class T>
+    FmtStream& operator<<(T t){
+      fptr << t;
+      return *this;
+    }
+};
+
+extern FmtStream fmtout;
+
 #endif
