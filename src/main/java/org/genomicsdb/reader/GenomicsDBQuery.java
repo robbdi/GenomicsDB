@@ -171,6 +171,10 @@ public class GenomicsDBQuery {
     jniDisconnect(handle);
   }
 
+  public List<Interval> queryVariantCalls(long handle) {
+    return jniQueryVariantCallsNoArgs(handle);
+  }
+
   public List<Interval> queryVariantCalls(long handle,
                                           final String arrayName) {
     return jniQueryVariantCalls(handle, arrayName, Collections.EMPTY_LIST, Collections.EMPTY_LIST);
@@ -240,6 +244,8 @@ public class GenomicsDBQuery {
                                                       final String loaderJSONFile);
 
   private static native void jniDisconnect(long handle);
+
+  private static native List<Interval> jniQueryVariantCallsNoArgs(long handle);
 
   private static native List<Interval> jniQueryVariantCalls(long handle,
                                                             final String arrayName,

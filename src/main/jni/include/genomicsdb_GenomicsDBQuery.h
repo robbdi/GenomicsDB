@@ -59,6 +59,14 @@ JNIEXPORT void JNICALL Java_org_genomicsdb_reader_GenomicsDBQuery_jniDisconnect
 
 /*
  * Class:     org_genomicsdb_reader_GenomicsDBQuery
+ * Method:    jniQueryVariantCallsNoArgs
+ * Signature: (J)Ljava/util/List;
+ */
+JNIEXPORT jobject JNICALL Java_org_genomicsdb_reader_GenomicsDBQuery_jniQueryVariantCallsNoArgs
+  (JNIEnv *, jclass, jlong);
+
+/*
+ * Class:     org_genomicsdb_reader_GenomicsDBQuery
  * Method:    jniQueryVariantCalls
  * Signature: (JLjava/lang/String;Ljava/util/List;Ljava/util/List;)Ljava/util/List;
  */

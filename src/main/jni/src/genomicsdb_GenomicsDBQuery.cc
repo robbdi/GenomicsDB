@@ -23,6 +23,8 @@
 #include "genomicsdb_GenomicsDBQuery.h"
 #include "genomicsdb.h"
 
+#include <iostream>
+
 #include <assert.h>
 #include <mutex>
 
@@ -322,6 +324,7 @@ class VariantCallProcessor : public GenomicsDBVariantCallProcessor {
                const int64_t* coordinates,
                const genomic_interval_t& interval,
                const std::vector<genomic_field_t>& fields) {
+    std::cerr << "Processing sample_name: " << sample_name << " coordinates=" << coordinates[0] << " " << coordinates[1] << std::endl;
     int64_t row = coordinates[0];
     int64_t col = coordinates[1];
     jstring java_sample_name = env_->NewStringUTF(sample_name.c_str());
@@ -361,6 +364,25 @@ class VariantCallProcessor : public GenomicsDBVariantCallProcessor {
 };
 
 JNIEXPORT jobject JNICALL
+Java_org_genomicsdb_reader_GenomicsDBQuery_jniQueryVariantCallsNoArgs(JNIEnv *env,
+                                                                      jclass cls,
+                                                                      jlong handle) {
+  // Convert
+  GenomicsDB *genomicsdb = reinterpret_cast<GenomicsDB *>(static_cast<uintptr_t>(handle));
+  VariantCallProcessor processor(env, cls);
+  try {
+    GenomicsDBVariantCalls variant_calls = genomicsdb->query_variant_calls(processor);
+    if (variant_calls.size() > 0) {
+      // auto result = to_java_Interval(env, cls, array_name_cstr, genomicsdb, variant_calls);
+      throw GenomicsDBException("NYI: processing results of genomicsdb_GenomicsDBQuery.cc#jniQueryInterval :"+std::to_string(__LINE__));
+    }
+  } catch (GenomicsDBException& e) {
+    handleJNIException(env, e);
+  }
+  return processor.get_intervals_list();
+}
+
+JNIEXPORT jobject JNICALL
 Java_org_genomicsdb_reader_GenomicsDBQuery_jniQueryVariantCalls(JNIEnv *env,
                                                                 jclass cls,
                                                                 jlong handle,
@@ -382,6 +404,7 @@ Java_org_genomicsdb_reader_GenomicsDBQuery_jniQueryVariantCalls(JNIEnv *env,
       throw GenomicsDBException("NYI: processing results of genomicsdb_GenomicsDBQuery.cc#jniQueryInterval :"+std::to_string(__LINE__));
     }
   } catch (GenomicsDBException& e) {
+    handleJNIException(env, e);
   }
   
   env->ReleaseStringUTFChars(array_name, array_name_cstr);
