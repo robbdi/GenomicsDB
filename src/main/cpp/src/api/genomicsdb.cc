@@ -377,15 +377,13 @@ void print_variant_calls(const VariantQueryConfig& query_config,
                          const VariantQueryProcessor& query_processor,
                          const VidMapper& vid_mapper) {
   std::string indent_prefix = "    ";
-  std::stringstream ss;
-  ss << "{\n";
+  std::cout << "{\n";
   //variant_calls is an array of dictionaries
-  ss << indent_prefix << "\"variant_calls\": [\n";
-  VariantCallPrintOperator printer(ss, indent_prefix+indent_prefix, &vid_mapper);
+  std::cout << indent_prefix << "\"variant_calls\": [\n";
+  VariantCallPrintOperator printer(std::cout, indent_prefix+indent_prefix, &vid_mapper);
   query_processor.iterate_over_cells(query_processor.get_array_descriptor(), query_config, printer, true);
-  ss << "\n" << indent_prefix << "]\n";
-  ss << "}\n";
-  logger.info(ss.str());
+  std::cout << "\n" << indent_prefix << "]\n";
+  std::cout << "}\n";
 }
 #endif
 
