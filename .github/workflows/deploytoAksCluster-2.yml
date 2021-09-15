@@ -1,0 +1,50 @@
+on: [push]
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    
+    - uses: azure/docker-login@v1
+      with:
+        login-server: robbdigenomicsdb.azurecr.io
+        username: ${{ secrets.acr_robbdigenomicsdb_username }}
+        password: ${{ secrets.acr_robbdigenomicsdb_password }}
+    
+    - name: Build and push image to ACR
+      id: build-image
+      run: |
+        docker build "$GITHUB_WORKSPACE/scripts" -f  "scripts/Dockerfile" -t robbdigenomicsdb.azurecr.io/robbdikubernetes:${{ github.sha }} --label dockerfile-path=scripts/Dockerfile
+        docker push robbdigenomicsdb.azurecr.io/robbdikubernetes:${{ github.sha }}
+    
+    - uses: azure/k8s-set-context@v1
+      with:
+         kubeconfig: ${{ secrets.aks_robbdikubernetes_kubeConfig }}
+      id: login
+    
+    - name: Create namespace
+      run: |
+        namespacePresent=`kubectl get namespace | grep robbdigenomicsdb | wc -l`
+        if [ $namespacePresent -eq 0 ]
+        then
+            echo `kubectl create namespace robbdigenomicsdb`
+        fi
+
+    - uses: azure/k8s-create-secret@v1
+      with:
+        namespace: robbdigenomicsdb
+        container-registry-url: robbdigenomicsdb.azurecr.io
+        container-registry-username: ${{ secrets.acr_robbdigenomicsdb_username }}
+        container-registry-password: ${{ secrets.acr_robbdigenomicsdb_password }}
+        secret-name: robbdikuberndockerauth
+       
+    - uses: azure/k8s-deploy@v1.2
+      with:
+        namespace: robbdigenomicsdb
+        manifests: |
+          manifests/deployment-2.yml
+          manifests/service-2.yml
+        images: |
+          robbdigenomicsdb.azurecr.io/robbdikubernetes:${{ github.sha }}
+        imagepullsecrets: |
+          robbdikuberndockerauth
