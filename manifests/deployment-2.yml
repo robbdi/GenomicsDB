@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "robbdikubernetes-473e"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "robbdikubernetes-473e"
+  template:
+    metadata:
+      labels:
+        app: "robbdikubernetes-473e"
+    spec:
+      containers:
+        - name: "robbdikubernetes-473e"
+          image: "robbdigenomicsdb.azurecr.io/robbdikubernetes"
+          ports:
+          - containerPort: 80
