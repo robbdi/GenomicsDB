@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "robbdikubes01-d4fc"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "robbdikubes01-d4fc"
+  template:
+    metadata:
+      labels:
+        app: "robbdikubes01-d4fc"
+    spec:
+      containers:
+        - name: "robbdikubes01-d4fc"
+          image: "robbdidocreg.azurecr.io/robbdikubes01"
+          ports:
+          - containerPort: 80
